@@ -5,7 +5,7 @@
       "name": "(gdb) Launch Test-app",
       "type": "cppdbg",
       "request": "launch",
-      "program": "/home/chris/repos/PIDKiln/firmware/test-app/build/firmware/test-app/test_app",
+      "program": "/home/chris/repos/HeatTreatFurnace/firmware/test-app/build/firmware/test-app/test_app",
       "args": ["-v", "-n", "PushAndPopS"],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",

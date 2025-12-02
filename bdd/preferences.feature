@@ -4,7 +4,7 @@ Feature: Preferences Page
   So that I can customize the controller behavior
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
     And I am on the Preferences view
 
@@ -38,7 +38,7 @@ Feature: Preferences Page
   @preferences @download-config
   Scenario: Download configuration file
     When I click the "Download Config" button
-    Then the browser should download "pidkiln.conf"
+    Then the browser should download "config.conf"
     And the file should contain the current configuration in INI format
 
   @preferences @save-error

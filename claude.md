@@ -1,6 +1,6 @@
-# Claude AI Configuration for PIDKiln Project
+# AI Configuration for HeatTreatFurnace Project
 
-This document provides configuration and guidelines for Claude AI when working on the project.
+This document provides configuration and guidelines for AI when working on the project.
 
 ---
 

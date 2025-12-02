@@ -4,7 +4,7 @@ Feature: Programs Page
   So that I can create and modify firing schedules
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
     And I am on the Programs view
 

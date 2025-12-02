@@ -4,7 +4,7 @@ Feature: Program Editor
   So that I can write and edit program files
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
 
   @editor @navigation

@@ -18,7 +18,7 @@ No local Node.js installation is required - all npm commands run inside the Dock
 ```bash
 # Clone the repository
 git clone https://github.com/digiexchris/furnace.git
-cd pidkiln
+cd HeatTreatFurnace
 
 # Start the development environment
 cd simulator
@@ -35,7 +35,7 @@ The first build takes a few minutes to install dependencies. Subsequent starts a
 ## Project Structure
 
 ```
-PIDKiln/
+HeatTreatFurnace/
 ├── frontend/               # Web frontend (TypeScript SPA)
 │   ├── src/               # Source code
 │   ├── dist/              # Build output (generated)

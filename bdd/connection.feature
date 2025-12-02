@@ -1,10 +1,10 @@
 Feature: WebSocket Connection Management
-  As a user of the PIDKiln interface
+  As a user of the HeatTreatFurnace interface
   I want to see the connection status and control the connection
   So that I know when the kiln is reachable and can reconnect if needed
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the simulator backend is running
 
   @connection @status-bar

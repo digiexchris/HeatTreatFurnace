@@ -1,10 +1,10 @@
 Feature: Navigation
-  As a user of the PIDKiln interface
+  As a user of the HeatTreatFurnace interface
   I want to navigate between different views
   So that I can access all features of the application
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
 
   @navigation @sidebar

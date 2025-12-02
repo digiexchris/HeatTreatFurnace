@@ -402,7 +402,7 @@ Content-Type: application/json
 
 #### Get Config File
 ```
-GET /etc/config.conf
+GET /config.conf
 ```
 
 **Response:** `text/plain` configuration file in INI-like format
@@ -568,36 +568,18 @@ Content-Type: multipart/form-data
 
 **Warning:** Device will restart after successful upload. Do not interrupt the upload process.
 
-#### Program Control (Deprecated)
-```
-POST /api/program/:action
-```
-
-| Param | Values |
-|-------|--------|
-| `action` | `start`, `pause`, `stop`, `load` |
-
-**Body (for load action):**
-```json
-{ "filename": "program1.txt" }
-```
-
-Use WebSocket commands instead.
-
----
-
 ## Program Status Codes
 
-| Code | Constant | Description |
-|------|----------|-------------|
-| 0 | `NONE` | No program loaded |
-| 1 | `READY` | Program loaded, ready to start |
-| 2 | `RUNNING` | Program executing |
-| 3 | `PAUSED` | Program paused |
-| 4 | `STOPPED` | Program stopped by user |
-| 5 | `ERROR` | Program encountered an error |
-| 6 | `WAITING_THRESHOLD` | Waiting for temperature threshold |
-| 7 | `FINISHED` | Program completed successfully |
+| Code | Constant            | Description                          |
+|------|---------------------|--------------------------------------|
+| 0    | `IDLE`              | No program loaded                    |
+| 1    | `LOADED`            | Program loaded, not yet run          |
+| 2    | `RUNNING`           | Program executing                    |
+| 3    | `PAUSED`            | Program paused                       |
+| 4    | `COMPLETED`         | Program completed successfully       |
+| 5    | `CANCELLED`         | Program stopped by user              |
+| 6    | `ERROR`             | Error state                          |
+| 7    | `WAITING_FOR_TEMP`  | Auto pause until target temp reached |
 
 ---
 
@@ -671,12 +653,9 @@ Programs are JSON files containing an array of temperature profile segments.
 - Max file size: 10KB
 - Max filename: 20 characters
 - Allowed characters: A-Z, a-z, 0-9, `.`, `_`
-- Must end with `.json` (`.txt` format deprecated but supported for backwards compatibility)
+- Must end with `.json`
 - Max temperature: 1350°C
 - All time values must be non-negative numbers
-
-**Legacy Text Format (Deprecated):**
-The old text format (`target_temp:ramp_minutes:dwell_minutes`) is still supported for backwards compatibility but should not be used for new programs.
 
 ---
 

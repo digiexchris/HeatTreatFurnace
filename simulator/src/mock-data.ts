@@ -9,7 +9,7 @@ import { getTimeScale, getThermalConfig, getTickIntervalMs, setTimeScale as conf
 // Event emitter for state changes
 export const stateEmitter = new EventEmitter();
 
-// Program status constants (matches pidkiln.h)
+// Program status constants (matches HeatTreatFurnace.h)
 export const PROGRAM_STATUS = {
   NONE: 0,
   READY: 1,
@@ -899,7 +899,7 @@ export function recordStepComplete(stepNumber: number): void {
 }
 
 /**
- * Generate PIDKiln_vars.json response (legacy format)
+ * Generate HeatTreatFurnace_vars.json response (legacy format)
  */
 export function getVarsJson(): Record<string, unknown> {
   const s = getState();
@@ -908,7 +908,7 @@ export function getVarsJson(): Record<string, unknown> {
     log_file: (s.program_status as number) >= PROGRAM_STATUS.RUNNING && state.loadedProgram
       ? `/logs/${new Date(simulatedTimeMs).toISOString().slice(0,10)}_${state.loadedProgram.replace('.json', '')}.csv`
       : '',
-    pidkiln: [
+    HeatTreatFurnace: [
       { html_id: '#kiln_temp', value: String(s.kiln_temp) },
       { html_id: '#set_temp', value: String(s.set_temp) },
       { html_id: '#env_temp', value: String(s.env_temp) },

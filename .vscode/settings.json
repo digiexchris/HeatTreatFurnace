@@ -54,12 +54,21 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "thread": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "bit": "cpp",
+        "charconv": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "set": "cpp",
+        "format": "cpp",
+        "numbers": "cpp",
+        "span": "cpp",
+        "variant": "cpp"
     },
     "idf.espIdfPath": "/home/chris/esp/v5.5.1/esp-idf",
     "idf.toolsPath": "/home/chris/.espressif",
     "idf.pythonInstallPath": "/usr/bin/python3",
-    "cmake.sourceDirectory": "/home/chris/repos/PIDKiln",
+    "cmake.sourceDirectory": "/home/chris/repos/HeatTreatFurnace",
     "C_Cpp.default.cppStandard": "gnu++23",
     "C_Cpp.default.cStandard": "gnu23",
     "C_Cpp.doxygen.generatedStyle": "/**"

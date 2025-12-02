@@ -4,7 +4,7 @@ Feature: System Controls
   So that I can reboot the device and manage connections
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
 
   @system @reboot

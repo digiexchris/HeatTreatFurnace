@@ -75,7 +75,7 @@ See [API.md](../API.md) for complete documentation.
 | POST | `/delete` | Delete program file |
 | GET | `/logs/` | List log files (JSON) |
 | GET | `/logs/:filename` | Get log content (CSV) |
-| GET | `/etc/pidkiln.conf` | Get config file |
+| GET | `/config.conf` | Get config file |
 | GET | `/api/preferences` | Get preferences (JSON) |
 | POST | `/api/preferences` | Save preferences (JSON) |
 | GET | `/api/debug` | Get debug info (JSON) |
@@ -83,12 +83,6 @@ See [API.md](../API.md) for complete documentation.
 | POST | `/api/temperature` | Set target temperature |
 | POST | `/api/reboot` | Reboot device |
 | POST | `/update-firmware` | Upload firmware |
-
-### Legacy (Deprecated)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/PIDKiln_vars.json` | Use WebSocket instead |
-| POST | `/api/program/:action` | Use WebSocket instead |
 
 ## Program Status Codes
 

@@ -4,7 +4,7 @@ Feature: Logs Page
   So that I can analyze past firings
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
     And I am on the Logs view
 

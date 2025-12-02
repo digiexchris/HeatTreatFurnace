@@ -4,7 +4,7 @@ Feature: Program Control
   So that I can control the firing process
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
 
   @program @load

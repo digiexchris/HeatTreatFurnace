@@ -11,8 +11,8 @@ This document describes features and behaviors that are **not fully functional**
 **Status:** ❌ Not Implemented
 
 - Preferences are stored **in-memory only** (lost on simulator restart)
-- No file-based persistence to `pidkiln.conf` or equivalent
-- The frontend's "Download Config" link (`/etc/pidkiln.conf`) is not implemented
+- No file-based persistence to `config.conf` or equivalent
+- The frontend's "Download Config" link (`/config.conf`) is not implemented
 
 **Impact:** Preferences must be re-entered after each simulator restart.
 
@@ -157,7 +157,7 @@ The following error conditions are **not implemented** in the simulator:
 
 ### Config File Download
 
-**Endpoint:** `GET /etc/pidkiln.conf`
+**Endpoint:** `GET /config.conf`
 
 **Status:** ❌ Not Implemented
 

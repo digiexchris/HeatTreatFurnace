@@ -4,7 +4,7 @@ Feature: Debug Page
   So that I can diagnose issues and update firmware
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
     And I am on the Debug view
 
@@ -18,7 +18,7 @@ Feature: Debug Page
       | SDK_VERSION    | ESP-IDF SDK version            |
       | MAC_ADDRESS    | Device MAC address             |
       | FREE_HEAP      | Available heap memory          |
-      | VERSION        | PIDKiln firmware version       |
+      | VERSION        | HeatTreatFurnace firmware version       |
 
   @debug @websocket-log
   Scenario: WebSocket message log is hidden by default

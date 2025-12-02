@@ -4,7 +4,7 @@ Feature: Dashboard View
   So that I can track the firing progress
 
   Background:
-    Given the PIDKiln frontend is loaded in a browser
+    Given the HeatTreatFurnace frontend is loaded in a browser
     And the WebSocket is connected
     And I am on the Dashboard view
 

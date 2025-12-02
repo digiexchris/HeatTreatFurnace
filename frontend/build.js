@@ -16,7 +16,7 @@ const staticAssets = [
   'index.html',
   'uPlot.iife.min.js',
   'uPlot.min.css',
-  'PIDKiln_vars.json',
+  'HeatTreatFurnace_vars.json',
 ];
 
 const staticDirs = [

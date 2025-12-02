@@ -10,33 +10,33 @@ RUN apk add --no-cache flatbuffers-dev
 WORKDIR /app
 
 # Copy schema file (shared between frontend and simulator)
-COPY proto/ ./proto/
+# COPY proto/ ./proto/
 
-# Copy and install simulator dependencies (npm ci verifies integrity hashes)
-COPY simulator/package.json simulator/package-lock.json ./simulator/
-WORKDIR /app/simulator
-RUN npm ci
+# # Copy and install simulator dependencies (npm ci verifies integrity hashes)
+# COPY simulator/package.json simulator/package-lock.json ./simulator/
+# WORKDIR /app/simulator
+# RUN npm ci
 
-# Copy and install frontend dependencies (npm ci verifies integrity hashes)
-WORKDIR /app
-COPY frontend/package.json frontend/package-lock.json ./frontend/
-WORKDIR /app/frontend
-RUN npm ci
+# # Copy and install frontend dependencies (npm ci verifies integrity hashes)
+# WORKDIR /app
+# COPY frontend/package.json frontend/package-lock.json ./frontend/
+# WORKDIR /app/frontend
+# RUN npm ci
 
-# Copy simulator source and build
-WORKDIR /app
-COPY simulator/build.js simulator/tsconfig.json ./simulator/
-COPY simulator/src/ ./simulator/src/
+# # Copy simulator source and build
+# WORKDIR /app
+# COPY simulator/build.js simulator/tsconfig.json ./simulator/
+# COPY simulator/src/ ./simulator/src/
 
-WORKDIR /app/simulator
-RUN npm run build
+# WORKDIR /app/simulator
+# RUN npm run build
 
-# Copy frontend source and build
-WORKDIR /app
-COPY frontend/ ./frontend/
+# # Copy frontend source and build
+# WORKDIR /app
+# COPY frontend/ ./frontend/
 
-WORKDIR /app/frontend
-RUN npm run build
+# WORKDIR /app/frontend
+# RUN npm run build
 
 # Expose the server port
 EXPOSE 3000
