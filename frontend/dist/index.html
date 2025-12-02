@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Furnace</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+  <link rel="stylesheet" href="/uPlot.min.css">
+  <style>
+    :root {
+      --bg: #0f0f14;
+      --surface: #1a1a24;
+      --surface-2: #252532;
+      --primary: #2d2d3a;
+      --accent: #ff6b4a;
+      --accent-dim: #cc5540;
+      --text: #eaeaea;
+      --text-muted: #888;
+      --success: #4ade80;
+      --warning: #fbbf24;
+      --error: #f87171;
+      --info: #60a5fa;
+      --nav-width: 200px;
+      --status-height: 48px;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Status Bar */
+    .status-bar {
+      height: var(--status-height);
+      background: var(--surface);
+      border-bottom: 1px solid var(--primary);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      gap: 1.5rem;
+      flex-shrink: 0;
+    }
+    
+    .status-bar .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .status-bar .connection {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    
+    .status-bar .connection .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--error);
+    }
+    
+    .status-bar .connection.connected .dot {
+      background: var(--success);
+    }
+    
+    .status-bar .temps {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+    }
+    
+    .status-bar .temp-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    
+    .status-bar .temp-label {
+      color: var(--text-muted);
+    }
+    
+    .status-bar .temp-value {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .status-bar .temp-value.highlight {
+      color: var(--accent);
+      font-size: 1rem;
+    }
+    
+    .status-bar .program-status {
+      margin-left: auto;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--primary);
+    }
+    
+    .status-bar .program-status.running { background: var(--success); color: #000; }
+    .status-bar .program-status.paused { background: var(--warning); color: #000; }
+    .status-bar .program-status.error { background: var(--error); }
+    
+    /* Simulator Controls */
+    .simulator-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: 1rem;
+      padding: 0.25rem 0.5rem;
+      background: rgba(34, 211, 238, 0.15);
+      border-radius: 4px;
+      border: 1px solid var(--info);
+    }
+    
+    .simulator-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--info);
+      letter-spacing: 0.05em;
+    }
+    
+    .simulator-controls input[type="range"] {
+      width: 240px;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--primary);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    
+    .simulator-controls input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--info);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    .simulator-controls input[type="range"]::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: var(--info);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .time-scale-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--info);
+      min-width: 2.5rem;
+      text-align: right;
+    }
+    
+    /* Main Layout */
+    .main-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    /* Navigation Sidebar */
+    .nav-sidebar {
+      width: var(--nav-width);
+      background: var(--surface);
+      border-right: 1px solid var(--primary);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    
+    .nav-section {
+      padding: 0.75rem;
+    }
+    
+    .nav-section-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      padding: 0.5rem 0.75rem;
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+    
+    .nav-item:hover {
+      background: var(--primary);
+      color: var(--text);
+    }
+    
+    .nav-item.active {
+      background: var(--accent-dim);
+      color: white;
+    }
+    
+    .nav-item .icon {
+      width: 18px;
+      text-align: center;
+    }
+    
+    .nav-divider {
+      height: 1px;
+      background: var(--primary);
+      margin: 0.5rem 0.75rem;
+    }
+    
+    /* Controls Section in Sidebar */
+    .controls-section {
+      margin-top: auto;
+      padding: 0.75rem;
+      border-top: 1px solid var(--primary);
+    }
+    
+    .control-btn {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 0.4rem;
+      border: none;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--primary);
+      color: var(--text);
+      transition: background 0.15s;
+    }
+    
+    .control-btn:hover { background: var(--surface-2); }
+    .control-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .control-btn.primary { background: var(--success); color: #000; }
+    .control-btn.primary:hover { background: #22c55e; }
+    .control-btn.danger { background: var(--error); }
+    .control-btn.danger:hover { background: #dc2626; }
+    .control-btn.running-disabled,
+    .btn-small.running-disabled {
+      background: var(--primary);
+      color: var(--text);
+      cursor: not-allowed;
+    }
+    .control-btn.running-disabled:hover,
+    .btn-small.running-disabled:hover {
+      background: var(--surface-2);
+    }
+    
+    .control-row {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+    
+    .control-row .control-btn { margin-bottom: 0; }
+    
+    .control-input-group {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+    
+    .control-input-group input,
+    .control-input-group select {
+      flex: 1;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid var(--primary);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+    }
+    
+    .control-input-group button {
+      padding: 0.4rem 0.6rem;
+      flex-shrink: 0;
+      width: auto;
+      min-width: 64px;
+    }
+    
+    /* Content Area */
+    .content {
+      flex: 1;
+      overflow: auto;
+      padding: 1.5rem;
+    }
+    
+    .view {
+      display: none;
+      height: 100%;
+    }
+    
+    .view.active {
+      display: block;
+    }
+    
+    .view-header {
+      margin-bottom: 1.5rem;
+    }
+    
+    .view-header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .view-header p {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+    
+    /* Dashboard View */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .card {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    
+    .card-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .stat-value.accent { color: var(--accent); }
+    
+    /* Message Log */
+    .log-container {
+      background: var(--surface);
+      border-radius: 8px;
+      height: 400px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .log-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .log-header h3 {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .log-content {
+      flex: 1;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+    
+    .log-entry {
+      padding: 0.25rem 1rem;
+      border-bottom: 1px solid var(--primary);
+      display: flex;
+      gap: 0.75rem;
+    }
+    
+    .log-entry:hover { background: var(--primary); }
+    
+    .log-time { color: var(--text-muted); flex-shrink: 0; }
+    .log-type { font-weight: 600; width: 45px; flex-shrink: 0; }
+    .log-type.state { color: var(--info); }
+    .log-type.log { color: var(--success); }
+    .log-type.ack { color: var(--text-muted); }
+    .log-type.error { color: var(--error); }
+    .log-type.sent { color: var(--warning); }
+    .log-message { flex: 1; word-break: break-all; white-space: pre-wrap; }
+    
+    /* Programs View */
+    .programs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    
+    .programs-table th,
+    .programs-table td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--primary);
+    }
+    
+    .programs-table th {
+      background: var(--surface);
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+    
+    .programs-table tr:hover td {
+      background: var(--surface);
+    }
+    
+    .programs-table .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .programs-table .actions button {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .program-description-row,
+    .program-preview-row {
+      display: none;
+    }
+
+    .program-description {
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    .program-preview {
+      padding: 0.75rem;
+      background: var(--surface-2);
+      border-radius: 6px;
+      border: 1px solid var(--primary);
+      margin-top: 0.5rem;
+    }
+
+    .program-preview-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .program-preview-chart {
+      height: 160px;
+      min-height: 160px;
+      width: 100%;
+    }
+    .preview-loading,
+    .preview-error {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 160px;
+    }
+    
+    .btn-small {
+      padding: 0.25rem 0.5rem;
+      border: none;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+      background: var(--primary);
+      color: var(--text);
+    }
+    
+    .btn-small:hover { background: var(--surface-2); }
+    .btn-small.primary { background: var(--accent); }
+    .btn-small.danger { background: var(--error); }
+    .btn-small.running-disabled { background: var(--primary); color: var(--text); }
+    
+    /* Preferences View */
+    .prefs-section {
+      background: var(--surface);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    
+    .prefs-section-header {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--primary);
+      font-weight: 500;
+    }
+    
+    .prefs-section-content {
+      padding: 1rem;
+    }
+    
+    .pref-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    
+    .pref-row:last-child { margin-bottom: 0; }
+    
+    .pref-label {
+      width: 200px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    
+    .pref-input {
+      flex: 1;
+      max-width: 300px;
+    }
+    
+    .pref-input input,
+    .pref-input select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--primary);
+      border-radius: 4px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.875rem;
+    }
+    
+    /* Debug View */
+    .debug-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    
+    .debug-table th,
+    .debug-table td {
+      text-align: left;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--primary);
+    }
+    
+    .debug-table th {
+      background: var(--surface-2);
+      font-weight: 500;
+    }
+    
+    .debug-table td:first-child {
+      color: var(--text-muted);
+      width: 250px;
+    }
+    
+    /* About View */
+    .about-content {
+      max-width: 600px;
+    }
+    
+    .about-content h2 {
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    
+    .about-content p {
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    
+    .about-content a {
+      color: var(--accent);
+    }
+    
+    /* Editor View */
+    .editor-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - var(--status-height) - 3rem);
+      max-height: 100%;
+    }
+    
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      border-radius: 8px 8px 0 0;
+      border-bottom: 1px solid var(--primary);
+    }
+    
+    .editor-toolbar .filename {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    .editor-toolbar .actions {
+      margin-left: auto;
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .editor-hint {
+      padding: 0.5rem 1rem;
+      background: var(--surface-2);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    
+    .editor-hint code {
+      background: var(--primary);
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    
+    .editor-wrapper {
+      flex: 1;
+      display: flex;
+      background: var(--surface);
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+    }
+    
+    .editor-lines {
+      padding: 1rem 0.75rem;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      text-align: right;
+      user-select: none;
+      min-width: 40px;
+    }
+    
+    .editor-textarea {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+    }
+    
+    .editor-textarea::placeholder {
+      color: var(--text-muted);
+    }
+    
+    .editor-status {
+      padding: 0.5rem 1rem;
+      background: var(--surface);
+      border-top: 1px solid var(--primary);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    /* Chart Legend */
+    #chartLegend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      padding: 0.5rem 0;
+      font-size: 0.75rem;
+    }
+    
+    .chart-legend-item {
+      transition: opacity 0.15s;
+    }
+    
+    .chart-legend-item:hover {
+      opacity: 0.8;
+    }
+    
+    /* Chart Overview Bar */
+    #chartOverview {
+      background: var(--surface-2);
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .overview-viewport {
+      position: absolute;
+      top: 2px;
+      bottom: 2px;
+      background: rgba(255, 107, 74, 0.3);
+      border: 1px solid var(--accent);
+      border-radius: 2px;
+      cursor: grab;
+    }
+    
+    .overview-viewport:active {
+      cursor: grabbing;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .status-bar .temps { display: none; }
+      .nav-sidebar { width: 60px; }
+      .nav-item span { display: none; }
+      .nav-section-title { display: none; }
+      .controls-section { padding: 0.5rem; }
+      .control-btn { font-size: 0.7rem; padding: 0.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Status Bar -->
+  <header class="status-bar">
+    <div class="logo">🔥 Furnace</div>
+    <div class="connection" id="connection">
+      <div class="dot"></div>
+      <span>Disconnected</span>
+    </div>
+    <div class="temps">
+      <div class="temp-item">
+        <span class="temp-label">Kiln</span>
+        <span class="temp-value highlight" id="statusKiln">--</span>
+      </div>
+      <div class="temp-item">
+        <span class="temp-label">→</span>
+        <span class="temp-value" id="statusTarget">--</span>
+      </div>
+      <div class="temp-item">
+        <span class="temp-label">Env</span>
+        <span class="temp-value" id="statusEnv">--</span>
+      </div>
+      <div class="temp-item">
+        <span class="temp-label">Heat</span>
+        <span class="temp-value" id="statusHeat">--%</span>
+      </div>
+    </div>
+    <div id="simulatorControls" class="simulator-controls" style="display: none;">
+      <span id="simulatorBadge" class="simulator-badge">SIMULATED</span>
+      <input type="range" id="timeScaleSlider" min="1" max="100" step="1" value="1">
+      <span id="timeScaleLabel" class="time-scale-label">1.0x</span>
+    </div>
+    <div class="program-status" id="statusBadge">READY</div>
+  </header>
+
+  <div class="main-layout">
+    <!-- Navigation Sidebar -->
+    <nav class="nav-sidebar">
+      <div class="nav-section">
+        <div class="nav-section-title">Navigation</div>
+        <a class="nav-item active" href="#/" data-view="dashboard">
+          <span class="icon">📊</span>
+          <span>Dashboard</span>
+        </a>
+        <a class="nav-item" href="#/programs" data-view="programs">
+          <span class="icon">📄</span>
+          <span>Programs</span>
+        </a>
+        <a class="nav-item" href="#/logs" data-view="logs">
+          <span class="icon">📋</span>
+          <span>Logs</span>
+        </a>
+        <a class="nav-item" href="#/preferences" data-view="preferences">
+          <span class="icon">⚙️</span>
+          <span>Preferences</span>
+        </a>
+        <div class="nav-divider"></div>
+        <a class="nav-item" href="#/debug" data-view="debug">
+          <span class="icon">🔧</span>
+          <span>Debug</span>
+        </a>
+        <a class="nav-item" href="#/about" data-view="about">
+          <span class="icon">ℹ️</span>
+          <span>About</span>
+        </a>
+      </div>
+      
+      <!-- Controls Section -->
+      <div class="controls-section">
+        <div class="nav-section-title">Controls</div>
+        <div class="control-row">
+          <button class="control-btn primary" id="startBtn" onclick="sendCommand('start')">▶ Start</button>
+          <button class="control-btn" onclick="sendCommand('pause')">⏸ Pause</button>
+        </div>
+        <div class="control-row">
+          <button class="control-btn danger" onclick="sendCommand('stop')">⛔ Stop</button>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="control-input-group">
+          <select id="programSelect">
+            <option value="">Load program...</option>
+          </select>
+        </div>
+        <div class="control-input-group">
+          <button class="control-btn load-btn" id="sidebarLoadBtn" onclick="loadProgram()">Load</button>
+          <button class="control-btn" id="sidebarClearBtn" onclick="clearProgram()">Clear</button>
+        </div>
+        <div class="control-input-group">
+          <input type="number" id="tempInput" placeholder="Temp °C" min="0" max="1350">
+          <button class="control-btn" onclick="setTemperature()">Set</button>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="control-row">
+          <button class="control-btn" id="connectBtn" onclick="manualConnect()" disabled>🔌 Connect</button>
+          <button class="control-btn" id="disconnectBtn" onclick="disconnect()">⏹ Disconnect</button>
+        </div>
+        <button class="control-btn danger" onclick="reboot()">🔄 Reboot</button>
+      </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="content">
+      <!-- Dashboard View -->
+      <div class="view active" id="view-dashboard">
+        <div class="view-header">
+          <h1>Dashboard</h1>
+          <p>Real-time kiln status</p>
+        </div>
+        
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-title">Temperatures</div>
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span class="stat-label">Kiln</span>
+                <span class="stat-value accent" id="dashKiln">--°C</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Target</span>
+                <span class="stat-value" id="dashTarget">--°C</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Environment</span>
+                <span class="stat-value" id="dashEnv">--°C</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Housing</span>
+                <span class="stat-value" id="dashCase">--°C</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-title">Program Status</div>
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span class="stat-label">Status</span>
+                <span class="stat-value" id="dashStatus">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Program</span>
+                <span class="stat-value" id="dashProgram">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Step</span>
+                <span class="stat-value" id="dashStep">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Heat</span>
+                <span class="stat-value" id="dashHeat">--%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-title">Timing</div>
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span class="stat-label">Started</span>
+                <span class="stat-value" id="dashStart">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">ETA</span>
+                <span class="stat-value" id="dashEnd">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Current Time</span>
+                <span class="stat-value" id="dashTime">--</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Temp Change</span>
+                <span class="stat-value" id="dashChange">--°C/h</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-top: 1rem;">
+          <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Temperature History</span>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn-small" id="autoScrollBtn" onclick="toggleAutoScroll()">⏸ Auto Scroll</button>
+              <button class="btn-small" onclick="resetZoom()">⟲ Reset Zoom</button>
+            </div>
+          </div>
+          <div id="chartLegend" style="display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; padding: 0.5rem 0; font-size: 0.75rem;"></div>
+          <div id="chartWrapper" style="width: 100%; position: relative;">
+            <div id="chartContainer" style="width: 100%; height: 300px;"></div>
+            <div id="chartConnectionLost" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 15, 20, 0.9); justify-content: center; align-items: center; flex-direction: column; gap: 0.5rem;">
+              <span style="font-size: 2rem;">⚠️</span>
+              <span style="font-size: 1.25rem; font-weight: 600; color: var(--error);">CONNECTION LOST</span>
+              <span style="font-size: 0.875rem; color: var(--text-muted);">Waiting for reconnection...</span>
+            </div>
+          </div>
+          <div id="chartOverview" style="width: 100%; height: 40px; margin-top: 8px;"></div>
+        </div>
+      </div>
+
+      <!-- Programs View -->
+      <div class="view" id="view-programs">
+        <div class="view-header">
+          <h1>Programs</h1>
+          <p>Manage firing programs</p>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+          <button class="btn-small primary" onclick="createProgram()">+ New Program</button>
+          <button class="btn-small" onclick="loadProgramList()">↻ Refresh</button>
+        </div>
+        
+        <table class="programs-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Size</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="programsTableBody">
+            <tr><td colspan="3" style="color: var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Logs View -->
+      <div class="view" id="view-logs">
+        <div class="view-header">
+          <h1>Logs</h1>
+          <p>Program execution logs</p>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+          <button class="btn-small" onclick="loadLogsList()">↻ Refresh</button>
+        </div>
+        
+        <table class="programs-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Size</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <tr><td colspan="3" style="color: var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Preferences View -->
+      <div class="view" id="view-preferences">
+        <div class="view-header">
+          <h1>Preferences</h1>
+          <p>System configuration</p>
+        </div>
+        
+        <div id="prefsContent">
+          <p style="color: var(--text-muted)">Loading preferences...</p>
+        </div>
+        
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn-small primary" onclick="savePreferences()">Save Preferences</button>
+          <button class="btn-small" onclick="loadPreferences()">↻ Reload</button>
+          <a class="btn-small" href="/etc/pidkiln.conf" download="pidkiln.conf" style="text-decoration: none;">📥 Download Config</a>
+        </div>
+      </div>
+
+      <!-- Debug View -->
+      <div class="view" id="view-debug">
+        <div class="view-header">
+          <h1>Debug</h1>
+          <p>System information and diagnostics</p>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+          <button class="btn-small" onclick="loadDebugInfo()">↻ Refresh</button>
+        </div>
+        
+        <table class="debug-table" id="debugTable">
+          <tbody>
+            <tr><td colspan="2" style="color: var(--text-muted)">Loading...</td></tr>
+          </tbody>
+        </table>
+        
+        <div class="card" style="margin-top: 2rem;">
+          <div class="card-title">Firmware Update</div>
+          <p style="font-size: 0.8rem; color: var(--warning); margin-bottom: 0.75rem;">
+            ⚠️ Device will restart after upload. Do not interrupt.
+          </p>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <input type="file" id="firmwareFile" accept=".bin" style="font-size: 0.8rem;">
+            <button class="btn-small primary" onclick="uploadFirmware()">Upload Firmware</button>
+          </div>
+          <div id="firmwareStatus" style="margin-top: 0.5rem; font-size: 0.8rem;"></div>
+        </div>
+        
+        <div style="margin-top: 2rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.875rem;">
+            <input type="checkbox" id="wsLogEnabled" onchange="toggleWsLog()">
+            <span>Show WebSocket Messages</span>
+          </label>
+        </div>
+        
+        <div class="log-container" id="wsLogContainer" style="display: none; margin-top: 1rem;">
+          <div class="log-header">
+            <h3>WebSocket Messages</h3>
+            <button class="btn-small" onclick="clearLog()">Clear</button>
+          </div>
+          <div class="log-content" id="logContent"></div>
+        </div>
+      </div>
+
+      <!-- About View -->
+      <div class="view" id="view-about">
+        <div class="view-header">
+          <h1>About</h1>
+        </div>
+        
+        <div class="about-content">
+          <h2>Furnace</h2>
+          <p>Furnace is an ESP32-based kiln controller. It can be used to manage ceramic, glass or softer metals melting. Everything to temperature 1350°C.</p>
+          <p><strong>Version:</strong> <span id="aboutVersion">--</span></p>
+          <p>
+            <strong>Webpage:</strong> 
+            <a href="https://github.com/your-repo/furnace" target="_blank">GitHub</a>
+          </p>
+          <p>
+            <strong>Source:</strong> 
+            <a href="https://github.com/your-repo/furnace" target="_blank">Source Code</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Editor View -->
+      <div class="view" id="view-editor">
+        <div class="editor-container">
+          <div class="editor-toolbar">
+            <span class="filename" id="editorFilename">program.txt</span>
+            <div class="actions">
+              <button class="btn-small primary" onclick="saveProgram()">💾 Save</button>
+              <button class="btn-small" onclick="cancelEdit()">✕ Cancel</button>
+            </div>
+          </div>
+          <div class="editor-hint">
+            Format: <code>target_temp:ramp_minutes:dwell_minutes</code> &nbsp;|&nbsp; 
+            Lines starting with <code>#</code> are comments &nbsp;|&nbsp;
+            Max file size: 10KB
+          </div>
+          <div class="editor-wrapper">
+            <div class="editor-lines" id="editorLines">1</div>
+            <textarea class="editor-textarea" id="editorContent" placeholder="# My firing program
+# Bisque cone 06
+93:60:60
+260:120:0
+537:120:30
+1000:180:15" spellcheck="false"></textarea>
+          </div>
+          <div class="editor-status">
+            <span id="editorLineCount">0 lines</span>
+            <span id="editorByteCount">0 bytes</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/uPlot.iife.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+

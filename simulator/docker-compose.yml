@@ -1,0 +1,39 @@
+# Furnace Simulator Docker Compose
+#
+# Usage:
+#   docker-compose up --build      # Build and start simulator (first time)
+#   docker-compose up              # Start simulator
+#   docker-compose down            # Stop simulator
+#
+# Both frontend and simulator TypeScript are compiled by esbuild in watch mode.
+# Changes to src/*.ts files trigger automatic rebuild.
+
+services:
+  sim:
+    build:
+      context: ..
+      dockerfile: simulator/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount proto schema for code generation
+      - ../proto:/app/proto:ro
+      # Mount entire frontend directory for live development
+      - ../frontend:/app/frontend
+      # Named volume to preserve frontend node_modules from container build
+      - frontend_node_modules:/app/frontend/node_modules
+      # Mount simulator source for live backend development
+      - ./src:/app/simulator/src
+      - ./build.js:/app/simulator/build.js:ro
+      - ./tsconfig.json:/app/simulator/tsconfig.json:ro
+      - ./config.json:/app/simulator/config.json
+      # Named volume to preserve simulator node_modules from container build
+      - simulator_node_modules:/app/simulator/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATA_DIR=/app/frontend/dist
+      - FRONTEND_DIR=/app/frontend
+
+volumes:
+  frontend_node_modules:
+  simulator_node_modules:

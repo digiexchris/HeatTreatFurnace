@@ -1,0 +1,47 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 16,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "esp32",
+      "displayName": "ESP32 Application",
+      "description": "Build ESP32 application for hardware",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/firmware/esp32/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "toolchainFile": "/home/chris/esp/v5.5.1/",
+      "environment": {
+        "IDF_PATH": "/home/chris/esp/v5.5.1/esp-idf"
+      }
+    },
+    {
+      "name": "test-app",
+      "displayName": "Test Application",
+      "description": "Build test application for host-based testing with CppUTest Linux target",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/firmware/test-app/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "environment": {
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "esp32",
+      "configurePreset": "esp32"
+    },
+    {
+      "name": "test-app",
+      "configurePreset": "test-app"
+    }
+  ]
+}
+
