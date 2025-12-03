@@ -1,33 +1,28 @@
 #pragma once
 
+#include "Profile.hpp"
 #include "State.hpp"
 
 class StateMachine
 {
 public:
-  StateMachine();
-  StateId GetState() const;
-  bool CanTransition(StateId aToState) const;
-  bool TransitionTo(StateId aToState);
+    StateMachine();
+    StateId GetState() const;
+    bool CanTransition(StateId aToState) const;
+    bool TransitionTo(StateId aToState);
+
+    //Actions
 
 protected:
-  std::map<StateId, std::shared_ptr<BaseState>> myStates;
-  std::shared_ptr<StateMachine> myInstance;
+    std::map<StateId, std::shared_ptr<BaseState>> myStates;
+    std::shared_ptr<StateMachine> myInstance;
 
 private:
-  StateId myCurrentState;
-};
+    StateId myCurrentState;
+    std::shared_ptr<Profile> myLoadedProfile;
 
-std::map<StateId, std::set<StateId>> transitions = {
-    {StateId::IDLE, {StateId::LOADED, StateId::ERROR}},
-    {StateId::LOADED, {StateId::RUNNING, StateId::ERROR}},
-    {StateId::RUNNING,
-     {StateId::PAUSED, StateId::COMPLETED, StateId::CANCELLED, StateId::ERROR}},
-    {StateId::PAUSED, {StateId::RUNNING, StateId::CANCELLED, StateId::ERROR}},
-    {StateId::COMPLETED, {StateId::IDLE}},
-    {StateId::CANCELLED, {StateId::IDLE}},
-    {StateId::ERROR, {StateId::IDLE}},
-    {StateId::WAITING_FOR_TEMP,
-     {StateId::RUNNING, StateId::PAUSED, StateId::ERROR}}
+    //The Action would have asked that the loaded profile be replaced with this, which will happen when the Load() transition happens.
+    std::shared_ptr<Profile> myProfileToLoad;
+
 };
 
