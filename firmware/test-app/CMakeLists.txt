@@ -12,12 +12,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(FetchContent)
 
 FetchContent_Declare(
-    CppUTest
-    GIT_REPOSITORY https://github.com/cpputest/cpputest.git
-    GIT_TAG        v4.0
+        Catch2
+        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+        GIT_TAG        v3.8.1 # or a later release
 )
 
-FetchContent_MakeAvailable(CppUTest)
+FetchContent_MakeAvailable(Catch2)
 
 # if(DEFINED ENV{IDF_PATH})
 #     include($ENV{IDF_PATH}/tools/cmake/project.cmake)
@@ -28,13 +28,12 @@ FetchContent_MakeAvailable(CppUTest)
     add_subdirectory(../lib/Furnace Furnace)
     
     add_executable(test_app
-        main/test_main.cpp
+        main/test_StateMachine.cpp
     )
     
     target_link_libraries(test_app
         Furnace
-        CppUTest
-        CppUTestExt
+        Catch2::Catch2WithMain
     )
     
     target_include_directories(test_app PRIVATE
