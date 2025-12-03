@@ -7,7 +7,7 @@
 
 #include "Result.hpp"
 
-class StateMachine;
+class Furnace;
 
 enum class StateId
 {
@@ -23,7 +23,7 @@ enum class StateId
     WAITING_FOR_TEMP
 };
 
-const std::map<StateId, std::set<StateId>> validTransitions = {
+inline std::map<StateId, std::set<StateId>> validTransitions = {
     {StateId::IDLE, {StateId::LOADED, StateId::ERROR}},
     {StateId::LOADED, {StateId::RUNNING, StateId::ERROR}},
     {StateId::RUNNING,
@@ -41,12 +41,12 @@ class BaseState
 public:
     virtual ~BaseState() = default;
 
-    BaseState(std::shared_ptr<StateMachine> stateMachine)
+    explicit BaseState(Furnace* Furnace)
     {
-        myStateMachine = stateMachine;
+        myFurnace = Furnace;
     }
 
-    virtual StateId State() const = 0;
+    [[nodiscard]] virtual StateId State() const = 0;
 
     virtual Result OnEnter()
     {
@@ -59,103 +59,101 @@ public:
     }
 
 protected:
-    std::shared_ptr<StateMachine> myStateMachine;
+    Furnace* myFurnace;
 };
 
 class IdleState : public BaseState
 {
 public:
-    IdleState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit IdleState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::IDLE; }
-
-    bool CanEnter() const { return true; }
+    [[nodiscard]] StateId State() const override { return StateId::IDLE; }
 };
 
 class LoadedState : public BaseState
 {
 public:
-    LoadedState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit LoadedState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::LOADED; }
+    [[nodiscard]] StateId State() const override { return StateId::LOADED; }
 };
 
 class RunningState : public BaseState
 {
 public:
-    RunningState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit RunningState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::RUNNING; }
+    [[nodiscard]] StateId State() const override { return StateId::RUNNING; }
 };
 
 class PausedState : public BaseState
 {
 public:
-    PausedState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit PausedState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::PAUSED; }
+    [[nodiscard]] StateId State() const override { return StateId::PAUSED; }
 };
 
 class CompletedState : public BaseState
 {
 public:
-    CompletedState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit CompletedState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::COMPLETED; }
+    [[nodiscard]] StateId State() const override { return StateId::COMPLETED; }
 };
 
 class CancelledState : public BaseState
 {
 public:
-    CancelledState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit CancelledState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::CANCELLED; }
+    [[nodiscard]] StateId State() const override { return StateId::CANCELLED; }
 };
 
 class ErrorState : public BaseState
 {
 public:
-    ErrorState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit ErrorState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::ERROR; }
+    [[nodiscard]] StateId State() const override { return StateId::ERROR; }
 };
 
 class WaitingForTempState : public BaseState
 {
 public:
-    WaitingForTempState(std::shared_ptr<StateMachine> stateMachine) :
+    explicit WaitingForTempState(Furnace* Furnace) :
         BaseState(
-            stateMachine)
+            Furnace)
     {
     }
 
-    StateId State() const override { return StateId::WAITING_FOR_TEMP; }
+    [[nodiscard]] StateId State() const override { return StateId::WAITING_FOR_TEMP; }
 };

@@ -13,7 +13,8 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/firmware/esp32/build",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_POLICY_VERSION_MINIMUM": 3.5
       },
       "toolchainFile": "/home/chris/esp/v5.5.1/",
       "environment": {

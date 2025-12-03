@@ -1,5 +1,7 @@
 #pragma once
 #include <chrono>
+#include <string>
+#include <vector>
 
 
 /**
@@ -16,9 +18,9 @@ auto span = 1h + 3min + 30s;
 
 class ProfileSegment
 {
-    float target;
-    std::chrono::duration rampTime;
-    std::chrono::duration dwellTime;
+    float target = 0.0f;
+    std::chrono::milliseconds rampTime = std::chrono::milliseconds(0);
+    std::chrono::milliseconds dwellTime = std::chrono::milliseconds(0);
 };
 
 /**
@@ -29,4 +31,4 @@ struct Profile
     std::string name;
     std::string description;
     std::vector<ProfileSegment> segments;
-}
+};

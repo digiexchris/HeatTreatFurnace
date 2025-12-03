@@ -19,6 +19,13 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Catch2)
 
+FetchContent_Declare(
+        trompeloeil
+        GIT_REPOSITORY https://github.com/rollbear/trompeloeil.git
+        GIT_TAG v43)
+
+FetchContent_MakeAvailable(trompeloeil)
+
 # if(DEFINED ENV{IDF_PATH})
 #     include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 #     project(test_app)
@@ -34,6 +41,7 @@ FetchContent_MakeAvailable(Catch2)
     target_link_libraries(test_app
         Furnace
         Catch2::Catch2WithMain
+        trompeloeil::trompeloeil
     )
     
     target_include_directories(test_app PRIVATE
