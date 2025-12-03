@@ -15,7 +15,7 @@ StateMachine::StateMachine(Furnace* aFurnace, StateMap aStateMap) :
         StateMap states = std::move(CreateDefaultStates(aFurnace));
        myStates.swap(states);
 
-        assert(myStates.empty());
+        assert(!myStates.empty());
     }
 }
 

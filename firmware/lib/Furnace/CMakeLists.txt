@@ -3,3 +3,5 @@ add_library(Furnace StateMachine.cpp
         Action.hpp
         Furnace.cpp
         Furnace.hpp)
+
+target_include_directories(Furnace PUBLIC .)

@@ -25,12 +25,12 @@ enum class StateId
 
 inline std::map<StateId, std::set<StateId>> validTransitions = {
     {StateId::IDLE, {StateId::LOADED, StateId::ERROR}},
-    {StateId::LOADED, {StateId::RUNNING, StateId::ERROR}},
+    {StateId::LOADED, {StateId::IDLE, StateId::RUNNING, StateId::ERROR}},
     {StateId::RUNNING,
      {StateId::PAUSED, StateId::COMPLETED, StateId::CANCELLED, StateId::ERROR}},
     {StateId::PAUSED, {StateId::RUNNING, StateId::CANCELLED, StateId::ERROR}},
-    {StateId::COMPLETED, {StateId::IDLE, StateId::LOADED}},
-    {StateId::CANCELLED, {StateId::IDLE, StateId::LOADED}},
+    {StateId::COMPLETED, {StateId::IDLE, StateId::LOADED, StateId::ERROR}},
+    {StateId::CANCELLED, {StateId::IDLE, StateId::LOADED, StateId::ERROR}},
     {StateId::ERROR, {StateId::IDLE, StateId::LOADED}},
     {StateId::WAITING_FOR_TEMP,
      {StateId::RUNNING, StateId::PAUSED, StateId::ERROR}}
