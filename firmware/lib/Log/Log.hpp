@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdarg>
 #include <filesystem>
 
 #include "spdlog/spdlog.h"
@@ -38,21 +39,21 @@ public:
 
     ~Log() = default;
 
-    void operator()(std::string aMsg) const
+    void operator()(std::string aMsg, ...) const
     {
-        Info(aMsg);
+        va_list aFormat;
+        va_start(aFormat, aMsg);
+        Info(aMsg, aFormat);
+        va_end(aFormat);
     }
 
-    void Error(const std::string &aMsg) const;
-    void Warn(const std::string &aMsg) const;
-    void Info(const std::string& aMsg) const;
-    void Debug(const std::string& aMsg) const;
+    void Error(const std::string aMsg, ...) const;
+    void Warn(const std::string aMsg, ...) const;
+    void Info(const std::string aMsg, ...) const;
+    void Debug(const std::string aMsg, ...) const;
 
 protected:
-    // std::unique_ptr<spdlog::sinks::stdout_color_sink_mt> myConsoleSink;
-    // std::unique_ptr<spdlog::sinks::rotating_file_sink_mt> myFileSink;
-    // std::unique_ptr<spdlog::sinks::syslog_sink_mt> mySyslogSink;
-    // std::unique_ptr<spdlog::sinks::callback_sink_mt> myCallbackSink;
+    std::string Format(const std::string aMsg, ...) const;
     std::vector<spdlog::sink_ptr> mySinks;
     std::unique_ptr<spdlog::logger> myLogger;
 };

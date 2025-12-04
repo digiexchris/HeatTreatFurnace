@@ -4,16 +4,17 @@
 #include <memory>
 #include <utility>
 #include "State.hpp"
+#include "Log/Log.hpp"
 
-StateMachine::StateMachine(Furnace* aFurnace, StateMap aStateMap) :
-    myStates(std::move(aStateMap)), myCurrentState(StateId::IDLE)
+StateMachine::StateMachine(Furnace* aFurnace, Log* aLog, StateMap aStateMap) :
+    myLog(std::move(aLog)), myStates(std::move(aStateMap)), myCurrentState(StateId::IDLE)
 {
-    myInstance = this;
+    assert(aLog != nullptr);
 
     if (myStates.empty())
     {
         StateMap states = std::move(CreateDefaultStates(aFurnace));
-       myStates.swap(states);
+        myStates.swap(states);
 
         assert(!myStates.empty());
     }
@@ -59,10 +60,12 @@ bool StateMachine::CanTransition(const StateId& aToState)
 
 bool StateMachine::TransitionTo(StateId aToState)
 {
+    std::string fromState = ToString(myCurrentState);
     //Safety reset on ERROR, so always allow the transition
     if (aToState == StateId::ERROR)
     {
         myStates[StateId::ERROR]->OnEnter();
+        myLog->Debug("Transitioned to ERROR from {}", fromState);
         return true;
     }
 

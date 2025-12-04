@@ -13,8 +13,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/firmware/esp32/build",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_POLICY_VERSION_MINIMUM": 3.5
+        "CMAKE_BUILD_TYPE": "Debug"
       },
       "toolchainFile": "/home/chris/esp/v5.5.1/",
       "environment": {
@@ -26,12 +25,15 @@
       "displayName": "Test Application",
       "description": "Build test application for host-based testing with CppUTest Linux target",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/firmware/test-app/build",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang",
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_CXX_FLAGS": "-fcoverage-mapping -fprofile-instr-generate",
+        "CMAKE_C_FLAGS": "-fcoverage-mapping -fprofile-instr-generate"
       },
       "environment": {
       }

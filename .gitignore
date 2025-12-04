@@ -9,3 +9,6 @@ simulator/node_modules/
 build/
 
 bak/
+/cmake-build-clang/
+/cmake-build-debug/
+/cmake-build-test-app---test-app/

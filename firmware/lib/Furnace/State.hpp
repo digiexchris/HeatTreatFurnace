@@ -6,22 +6,35 @@
 #include <memory>
 
 #include "Result.hpp"
+#include "Enum.hpp"
 
 class Furnace;
 
-enum class StateId
-{
-    TRANSITIONING,
-    // Invalid state, this is used between transitions. ie. exit Idle, Enter None, Enter Error. In case the new Enter fails, it is then results as NONE.
-    IDLE,
-    LOADED,
-    RUNNING,
-    PAUSED,
-    COMPLETED,
-    CANCELLED,
-    ERROR,
-    WAITING_FOR_TEMP
-};
+ENUM(StateId, uint16_t,
+     TRANSITIONING,
+     // Invalid state, this is used between transitions. ie. exit Idle, Enter None, Enter Error. In case the new Enter fails, it is then results as NONE.
+     IDLE,
+     LOADED,
+     RUNNING,
+     PAUSED,
+     COMPLETED,
+     CANCELLED,
+     ERROR,
+     WAITING_FOR_TEMP);
+
+// enum class StateId
+// {
+//     TRANSITIONING,
+//     // Invalid state, this is used between transitions. ie. exit Idle, Enter None, Enter Error. In case the new Enter fails, it is then results as NONE.
+//     IDLE,
+//     LOADED,
+//     RUNNING,
+//     PAUSED,
+//     COMPLETED,
+//     CANCELLED,
+//     ERROR,
+//     WAITING_FOR_TEMP
+// };
 
 inline std::map<StateId, std::set<StateId>> validTransitions = {
     {StateId::IDLE, {StateId::LOADED, StateId::ERROR}},
