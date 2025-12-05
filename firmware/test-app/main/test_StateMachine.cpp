@@ -4,7 +4,8 @@
 #include "Furnace/StateMachine.hpp"
 #include "Furnace/State.hpp"
 #include "Furnace/Result.hpp"
-#include "Log/Log.hpp"
+#include "Log/LogService.hpp"
+#include "Log/LogBackend.hpp"
 #include <memory>
 #include <map>
 
@@ -21,48 +22,28 @@ public:
     }
 };
 
-class MockLogCallback
-{
-public:
-    std::string logMsg;
-
-    static void LogCallback(const spdlog::details::log_msg& msg)
-    {
-        logMsg = msg.payload.data();
-
-    }
-};
-
 class StateMachineFixture
 {
 public:
-    Log* myLog;
-    Log::Config myLogConfig;
-    MockLogCallback* mockLogCallback;
+    std::shared_ptr<LogService> myLog;
 
     StateMachineFixture()
     {
-        mockLogCallback = new MockLogCallback();
-        myLogConfig.callback.enable = true;
-        myLogConfig.callback.callback = mockLogCallback->LogCallback;
-        myLog = new Log(myLogConfig);
-    }
-
-    ~StateMachineFixture()
-    {
-        delete myLog;
+        myLog = std::make_shared<NullLogBackend>(
+            std::make_shared<NullLogBackend>()
+            );
     }
 };
 
 TEST_CASE_METHOD(StateMachineFixture, "StateMachine: Constructor - initializes to IDLE state")
 {
-    StateMachine stateMachine(nullptr, myLog);
+    StateMachine stateMachine(nullptr, myLog.get());
     REQUIRE(stateMachine.GetState() == StateId::IDLE);
 }
 
 TEST_CASE_METHOD(StateMachineFixture, "StateMachine: GetState - returns current state")
 {
-    StateMachine stateMachine(nullptr, myLog);
+    StateMachine stateMachine(nullptr, myLog.get());
 
     SECTION("Returns IDLE after construction")
     {
@@ -78,7 +59,7 @@ TEST_CASE_METHOD(StateMachineFixture, "StateMachine: GetState - returns current 
 
 TEST_CASE_METHOD(StateMachineFixture, "StateMachine: CanTransition - valid transitions are allowed")
 {
-    StateMachine stateMachine(nullptr, myLog);
+    StateMachine stateMachine(nullptr, myLog.get());
 
     SECTION("From IDLE state")
     {
@@ -162,7 +143,7 @@ TEST_CASE_METHOD(StateMachineFixture, "StateMachine: CanTransition - valid trans
 
 TEST_CASE_METHOD(StateMachineFixture, "StateMachine: CanTransition - invalid transitions are rejected")
 {
-    StateMachine stateMachine(nullptr, myLog);
+    StateMachine stateMachine(nullptr, myLog.get());
 
     SECTION("IDLE cannot transition to RUNNING")
     {
@@ -241,7 +222,7 @@ TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - successful t
     mockStates.insert({StateId::IDLE, std::move(mockIdleState)});
     mockStates.insert({StateId::LOADED, std::move(mockLoadedState)});
 
-    StateMachine stateMachine(mockFurnace, myLog, std::move(mockStates));
+    StateMachine stateMachine(mockFurnace, myLog.get(), std::move(mockStates));
 
     REQUIRE(stateMachine.GetState() == StateId::IDLE);
     REQUIRE(stateMachine.TransitionTo(StateId::LOADED));
@@ -250,7 +231,7 @@ TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - successful t
 
 TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - multiple sequential transitions")
 {
-    StateMachine stateMachine(nullptr, myLog);
+    StateMachine stateMachine(nullptr, myLog.get());
 
     REQUIRE(stateMachine.GetState() == StateId::IDLE);
     REQUIRE(stateMachine.TransitionTo(StateId::LOADED));
@@ -265,7 +246,7 @@ TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - multiple seq
 
 TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - invalid transition returns false")
 {
-    StateMachine stateMachine(nullptr, myLog);
+    StateMachine stateMachine(nullptr, myLog.get());
 
     REQUIRE(stateMachine.GetState() == StateId::IDLE);
     REQUIRE_FALSE(stateMachine.TransitionTo(StateId::RUNNING));
@@ -294,7 +275,7 @@ TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - OnExit failu
     mockStates.insert({StateId::IDLE, std::move(mockIdleState)});
     mockStates.insert({StateId::ERROR, std::move(mockErrorState)});
 
-    StateMachine stateMachine(mockFurnace, myLog, std::move(mockStates));
+    StateMachine stateMachine(mockFurnace, myLog.get(), std::move(mockStates));
 
     REQUIRE(stateMachine.GetState() == StateId::IDLE);
     REQUIRE_FALSE(stateMachine.TransitionTo(StateId::LOADED));
@@ -330,7 +311,7 @@ TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - OnEnter fail
     mockStates.insert({StateId::LOADED, std::move(mockLoadedState)});
     mockStates.insert({StateId::ERROR, std::move(mockErrorState)});
 
-    StateMachine stateMachine(mockFurnace, myLog, std::move(mockStates));
+    StateMachine stateMachine(mockFurnace, myLog.get(), std::move(mockStates));
 
     REQUIRE(stateMachine.GetState() == StateId::IDLE);
     REQUIRE_FALSE(stateMachine.TransitionTo(StateId::LOADED));

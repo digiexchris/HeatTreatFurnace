@@ -4,10 +4,10 @@
 #include <memory>
 #include <utility>
 #include "State.hpp"
-#include "Log/Log.hpp"
+#include "Log/LogService.hpp"
 
-StateMachine::StateMachine(Furnace* aFurnace, Log* aLog, StateMap aStateMap) :
-    myLog(std::move(aLog)), myStates(std::move(aStateMap)), myCurrentState(StateId::IDLE)
+StateMachine::StateMachine(Furnace* aFurnace, LogService* aLog, StateMap aStateMap) :
+    myLog(aLog), myStates(std::move(aStateMap)), myCurrentState(StateId::IDLE)
 {
     assert(aLog != nullptr);
 
@@ -65,7 +65,7 @@ bool StateMachine::TransitionTo(StateId aToState)
     if (aToState == StateId::ERROR)
     {
         myStates[StateId::ERROR]->OnEnter();
-        myLog->Debug("Transitioned to ERROR from {}", fromState);
+        myLog->Log(LogLevel::Debug, "StateMachine", "Transitioned to ERROR from {}", fromState);
         return true;
     }
 

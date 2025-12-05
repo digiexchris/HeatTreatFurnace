@@ -24,7 +24,7 @@ FetchContent_MakeAvailable(trompeloeil)
 project(test_app)
 
 add_subdirectory(../lib/Furnace Furnace)
-#add_subdirectory(../lib/Log Log)
+#find_library(Log REQUIRED)
 
 add_executable(test_app
         main/test_StateMachine.cpp
@@ -32,7 +32,6 @@ add_executable(test_app
 
 target_link_libraries(test_app
         Furnace
-        Log
         Catch2::Catch2WithMain
         trompeloeil::trompeloeil
 )

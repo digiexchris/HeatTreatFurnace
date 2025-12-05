@@ -1,5 +1,9 @@
-add_library(Log Log.cpp
-        Log.hpp)
+add_library(Log LogBackend.cpp
+        LogBackend.hpp
+        LogService.cpp
+        LogService.hpp
+        ConsoleLogBackend.cpp
+        ConsoleLogBackend.hpp)
 
 target_include_directories(Log PUBLIC .)
 

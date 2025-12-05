@@ -4,7 +4,7 @@
 #include "State.hpp"
 
 class Furnace;
-class Log;
+class LogService;
 
 class StateMachine
 {
@@ -14,7 +14,7 @@ public:
     /** @brief State Machine dependencies:
      * StateMap will be moved to myState
      */
-    explicit StateMachine(Furnace* aFurnace, Log* aLog, StateMap aStateMap = StateMap());
+    explicit StateMachine(Furnace* aFurnace, LogService* aLog, StateMap aStateMap = StateMap());
     ~StateMachine() = default;
     [[nodiscard]] StateId GetState() const;
     [[nodiscard]] bool CanTransition(const StateId& aToState);
@@ -33,6 +33,6 @@ private:
 
     //The Action would have asked that the loaded profile be replaced with this, which will happen when the Load() transition happens.
     std::unique_ptr<Profile> myProfileToLoad;
-    std::unique_ptr<Log> myLog;
+    LogService* myLog;
 };
 
