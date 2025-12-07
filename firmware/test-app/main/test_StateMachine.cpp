@@ -29,9 +29,7 @@ public:
 
     StateMachineFixture()
     {
-        myLog = std::make_shared<NullLogBackend>(
-            std::make_shared<NullLogBackend>()
-            );
+        myLog = std::make_shared<LogService>(std::initializer_list<std::shared_ptr<LogBackend>>(std::shared_ptr<NullLogBackend>()));
     }
 };
 
