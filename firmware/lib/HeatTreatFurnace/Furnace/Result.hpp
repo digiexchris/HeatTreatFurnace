@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HEAT_TREAT_FURNACE_RESULT_HPP
+#define HEAT_TREAT_FURNACE_RESULT_HPP
 
 #include <ostream>
 #include <string>
@@ -25,4 +26,6 @@ namespace HeatTreatFurnace::Furnace
             return success;
         }
     };
-}// namespace HeatTreatFurnace::Furnace
+} // namespace HeatTreatFurnace::Furnace
+
+#endif //HEAT_TREAT_FURNACE_RESULT_HPP

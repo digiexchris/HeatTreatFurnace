@@ -1,4 +1,6 @@
-#pragma once
+#ifndef HEAT_TREAT_FURNACE_PROFILE_HPP
+#define HEAT_TREAT_FURNACE_PROFILE_HPP
+
 #include <chrono>
 #include <string>
 #include <vector>
@@ -34,3 +36,5 @@ namespace HeatTreatFurnace::Furnace
         std::vector<ProfileSegment> segments;
     };
 } //HeatTreatFurnace::Furnace
+
+#endif //HEAT_TREAT_FURNACE_PROFILE_HPP

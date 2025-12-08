@@ -3,43 +3,53 @@
 #include <cassert>
 #include <memory>
 #include <utility>
+
+#include "Furnace.hpp"
 #include "State.hpp"
 #include "Log/LogService.hpp"
+#include "Safety.hpp"
 
 namespace HeatTreatFurnace::Furnace
 {
-    StateMachine::StateMachine(Furnace* aFurnace, LogService* aLog, StateMap aStateMap) :
-        myLog(aLog), myStates(std::move(aStateMap)), myCurrentState(StateId::IDLE)
+    StateMachine::StateMachine(Furnace& aFurnace, LogService* aLog) :
+        myLog(aLog), myFurnace(aFurnace),
+        myCurrentState(StateId::IDLE)
     {
         assert(aLog != nullptr);
 
-        if (myStates.empty())
-        {
-            StateMap states = std::move(CreateDefaultStates(aFurnace));
-            myStates.swap(states);
+        //MISRA 21.6.1 exception:
+        //Furnace is created very early on in the boot of the firmware.
+        //These objects are never allocated/reallocated after this point.
+        myIdleState = std::make_unique<IdleState>(aFurnace);
+        myLoadedState = std::make_unique<LoadedState>(aFurnace);
+        myRunningState = std::make_unique<RunningState>(aFurnace);
+        myPausedState = std::make_unique<PausedState>(aFurnace);
+        myCompletedState = std::make_unique<CompletedState>(aFurnace);
+        myCancelledState = std::make_unique<CancelledState>(aFurnace);
+        myErrorState = std::make_unique<ErrorState>(aFurnace);
+        myWaitingForTempState = std::make_unique<WaitingForTempState>(aFurnace);
 
-            assert(!myStates.empty());
-        }
+        auto result = myStates.emplace(StateId::IDLE, *myIdleState);
+        assert(result.second);
+        result = myStates.emplace(StateId::LOADED, *myLoadedState);
+        assert(result.second);
+        result = myStates.emplace(StateId::RUNNING, *myRunningState);
+        assert(result.second);
+        result = myStates.emplace(StateId::PAUSED, *myPausedState);
+        assert(result.second);
+        result = myStates.emplace(StateId::COMPLETED, *myCompletedState);
+        assert(result.second);
+        result = myStates.emplace(StateId::CANCELLED, *myCancelledState);
+        assert(result.second);
+        result = myStates.emplace(StateId::ERROR, *myErrorState);
+        assert(result.second);
+        result = myStates.emplace(StateId::WAITING_FOR_TEMP, *myWaitingForTempState);
+        assert(result.second);
     }
 
-    StateId StateMachine::GetState() const
+    HeatTreatFurnace::Furnace::StateId StateMachine::GetState() const
     {
         return myCurrentState;
-    }
-
-    StateMachine::StateMap StateMachine::CreateDefaultStates(Furnace* furnace)
-    {
-        StateMap states;
-        states.insert({StateId::IDLE, std::make_unique<IdleState>(furnace)});
-        states.insert({StateId::IDLE, std::make_unique<IdleState>(furnace)});
-        states.insert({StateId::LOADED, std::make_unique<LoadedState>(furnace)});
-        states.insert({StateId::RUNNING, std::make_unique<RunningState>(furnace)});
-        states.insert({StateId::PAUSED, std::make_unique<PausedState>(furnace)});
-        states.insert({StateId::COMPLETED, std::make_unique<CompletedState>(furnace)});
-        states.insert({StateId::CANCELLED, std::make_unique<CancelledState>(furnace)});
-        states.insert({StateId::ERROR, std::make_unique<ErrorState>(furnace)});
-        states.insert({StateId::WAITING_FOR_TEMP, std::make_unique<WaitingForTempState>(furnace)});
-        return states;
     }
 
     // ReSharper disable once CppMemberFunctionMayBeConst
@@ -50,7 +60,7 @@ namespace HeatTreatFurnace::Furnace
             return true;
         }
 
-        std::set<StateId>& set = validTransitions[myCurrentState];
+        const std::set<StateId>& set = myValidTransitions.at(myCurrentState);
 
         if (auto search = set.find(aToState); search == set.end())
         {
@@ -62,12 +72,14 @@ namespace HeatTreatFurnace::Furnace
 
     bool StateMachine::TransitionTo(StateId aToState)
     {
-        std::string fromState = ToString(myCurrentState);
+        StateName fromState = myStates.at(myCurrentState).Name();
         //Safety reset on ERROR, so always allow the transition
         if (aToState == StateId::ERROR)
         {
-            myStates[StateId::ERROR]->OnEnter();
-            myLog->Log(LogLevel::Debug, "StateMachine", "Transitioned to ERROR from {}", fromState);
+            auto result = myStates.at(StateId::ERROR).OnEnter();
+            DISCARD(result);
+
+            myLog->Log(Log::LogLevel::Debug, "StateMachine", "Transitioned to ERROR from {}", fromState);
             return true;
         }
 
