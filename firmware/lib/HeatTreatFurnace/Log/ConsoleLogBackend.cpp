@@ -1,8 +1,8 @@
 #include "ConsoleLogBackend.hpp"
-
+#include "LogBackend.hpp"
 #include "Furnace/State.hpp"
 
-namespace log
+namespace HeatTreatFurnace::Log
 {
     ConsoleLogBackend::ConsoleLogBackend(bool aUseStderrForErrors) :
         myUseStderrForErrors(aUseStderrForErrors),
@@ -19,11 +19,11 @@ namespace log
         stream << "[" << ToString(aLevel) << "] [" << aDomain << "] " << aMessage << "\n";
     }
 
-    bool ConsoleLogBackend::ShouldLog(log::LogLevel aLevel, std::string_view aDomain) const
+    bool ConsoleLogBackend::ShouldLog(LogLevel aLevel, std::string_view aDomain) const
     {
-        bool shouldLog = true;
+        bool shouldLog;
 
-        if (aLevel == log::LogLevel::None)
+        if (aLevel == LogLevel::None)
         {
             shouldLog = false;
         }

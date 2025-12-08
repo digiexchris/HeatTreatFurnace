@@ -23,7 +23,7 @@ FetchContent_MakeAvailable(trompeloeil)
 
 project(test_app)
 
-add_subdirectory(../lib/Furnace Furnace)
+add_subdirectory(../lib/HeatTreatFurnace HeatTreatFurnace)
 #find_library(Log REQUIRED)
 
 add_executable(test_app
@@ -31,7 +31,7 @@ add_executable(test_app
 )
 
 target_link_libraries(test_app
-        Furnace
+        HeatTreatFurnace
         Catch2::Catch2WithMain
         trompeloeil::trompeloeil
 )

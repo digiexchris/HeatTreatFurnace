@@ -6,7 +6,7 @@ This document provides configuration and guidelines for AI when working on the p
 
 ## Communication Style
 
-- Do not apologize or say sorry
+- Do not apologize
 - Be direct and concise
 - State corrections matter-of-factly without hedging
 

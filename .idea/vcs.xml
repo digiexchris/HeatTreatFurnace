@@ -7,5 +7,10 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/catch2-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/fmt-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cmake-build-debug/_deps/spdlog-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/firmware/test-app/build/_deps/catch2-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/firmware/test-app/build/_deps/cpputest-src" vcs="Git" />
   </component>
 </project>

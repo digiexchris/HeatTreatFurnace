@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CONSOLE_LOG_BACKEND_HPP
+#define CONSOLE_LOG_BACKEND_HPP
 
 #include "LogBackend.hpp"
 #include <iostream>
@@ -6,7 +7,7 @@
 #include <string>
 #include <set>
 
-namespace log
+namespace HeatTreatFurnace::Log
 {
     class ConsoleLogBackend : public LogBackend
     {
@@ -17,12 +18,12 @@ namespace log
 
         void SetMinLevel(LogLevel aMinLevel) override;
 
-        LogLevel GetMinLevel() const override;
+        [[nodiscard]] LogLevel GetMinLevel() const override;
 
     protected:
         // Log if requested level is <= configured level (lower numeric value = higher priority)
         // None=0, Error=1, Warn=2, Info=3, Debug=4, Verbose=5
-        bool ShouldLog(LogLevel aLevel, std::string_view aDomain) const override;
+        [[nodiscard]] bool ShouldLog(LogLevel aLevel, std::string_view aDomain) const override;
 
     private:
         bool myUseStderrForErrors;
@@ -30,3 +31,5 @@ namespace log
         LogLevel myMinLevel;
     };
 } //namespace log
+
+#endif // CONSOLE_LOG_BACKEND_HPP
