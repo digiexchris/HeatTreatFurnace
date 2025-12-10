@@ -4,9 +4,6 @@
 #define HEAT_TREAT_FURNACE_STATE_HPP
 
 #include <string>
-#include <set>
-#include <map>
-#include <memory>
 
 #include "Result.hpp"
 #include "etl/map.h"
@@ -14,7 +11,7 @@
 
 namespace HeatTreatFurnace::Furnace
 {
-    class Furnace;
+    class FurnaceState;
 
     constexpr size_t MAX_STATE_ID_NAME_LENGTH = 16;
 
@@ -40,7 +37,7 @@ namespace HeatTreatFurnace::Furnace
     public:
         virtual ~BaseState() = default;
 
-        explicit BaseState(Furnace& aFurnace, StateId aStateId = StateId::NUM_STATES) :
+        explicit BaseState(FurnaceState& aFurnace, StateId aStateId = StateId::NUM_STATES) :
             myFurnace(aFurnace), myStateId(aStateId)
         {
         }
@@ -86,7 +83,7 @@ namespace HeatTreatFurnace::Furnace
         }
 
     protected:
-        Furnace& myFurnace;
+        FurnaceState& myFurnace;
 
         StateId myStateId;
     };
@@ -94,8 +91,8 @@ namespace HeatTreatFurnace::Furnace
     class IdleState : public BaseState
     {
     public:
-        explicit IdleState(Furnace& Furnace) :
-            BaseState(Furnace, StateId::IDLE)
+        explicit IdleState(FurnaceState& aFurnace) :
+            BaseState(aFurnace, StateId::IDLE)
         {
         }
 
@@ -105,51 +102,51 @@ namespace HeatTreatFurnace::Furnace
     class LoadedState : public BaseState
     {
     public:
-        explicit LoadedState(Furnace& Furnace) :
+        explicit LoadedState(FurnaceState& Furnace) :
             BaseState(Furnace, StateId::LOADED)
         {
         }
 
-        [[nodiscard]] virtual StateId State() const override { return StateId::LOADED; } // NOLINT(*-use-override)
+        [[nodiscard]] StateId State() const override { return StateId::LOADED; }
     };
 
     class RunningState : public BaseState
     {
     public:
-        explicit RunningState(Furnace& Furnace) :
+        explicit RunningState(FurnaceState& Furnace) :
             BaseState(Furnace, StateId::RUNNING)
         {
         }
 
-        [[nodiscard]] virtual StateId State() const override { return StateId::RUNNING; } // NOLINT(*-use-override)
+        [[nodiscard]] StateId State() const override { return StateId::RUNNING; }
     };
 
     class PausedState : public BaseState
     {
     public:
-        explicit PausedState(Furnace& aFurnace) :
+        explicit PausedState(FurnaceState& aFurnace) :
             BaseState(aFurnace, StateId::PAUSED)
         {
         }
 
-        [[nodiscard]] virtual StateId State() const override { return StateId::PAUSED; } // NOLINT(*-use-override)
+        [[nodiscard]] StateId State() const override { return StateId::PAUSED; }
     };
 
     class CompletedState : public BaseState
     {
     public:
-        explicit CompletedState(Furnace& aFurnace) :
+        explicit CompletedState(FurnaceState& aFurnace) :
             BaseState(aFurnace, StateId::COMPLETED)
         {
         }
 
-        [[nodiscard]] virtual StateId State() const override { return StateId::COMPLETED; } // NOLINT(*-use-override)
+        [[nodiscard]] StateId State() const override { return StateId::COMPLETED; }
     };
 
     class CancelledState : public BaseState
     {
     public:
-        explicit CancelledState(Furnace& aFurnace) :
+        explicit CancelledState(FurnaceState& aFurnace) :
             BaseState(aFurnace, StateId::CANCELLED)
         {
         }
@@ -160,7 +157,7 @@ namespace HeatTreatFurnace::Furnace
     class ErrorState : public BaseState
     {
     public:
-        explicit ErrorState(Furnace& aFurnace) :
+        explicit ErrorState(FurnaceState& aFurnace) :
             BaseState(aFurnace, StateId::ERROR)
         {
         }
@@ -171,7 +168,7 @@ namespace HeatTreatFurnace::Furnace
     class WaitingForTempState : public BaseState
     {
     public:
-        explicit WaitingForTempState(Furnace& aFurnace) :
+        explicit WaitingForTempState(FurnaceState& aFurnace) :
             BaseState(aFurnace, StateId::WAITING_FOR_TEMP)
         {
         }

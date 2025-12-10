@@ -1,23 +1,25 @@
 #ifndef HEAT_TREAT_FURNACE_STATE_MACHINE_HPP
 #define HEAT_TREAT_FURNACE_STATE_MACHINE_HPP
 
+#include "etl/set.h"
 #include "Profile.hpp"
 #include "State.hpp"
+#include "Log/LogService.hpp"
 
 namespace HeatTreatFurnace::Furnace
 {
     class Furnace;
-    class LogService;
 
     class StateMachine
     {
     public:
+        constexpr static size_t NUM_STATES = static_cast<size_t>(StateId::NUM_STATES);
         using StateMap = etl::map<StateId, std::unique_ptr<BaseState>, static_cast<uint16_t>(StateId::NUM_STATES)>;
 
         /** @brief State Machine dependencies:
          * StateMap will be moved to myState
          */
-        explicit StateMachine(Furnace& aFurnace, LogService* aLog);
+        explicit StateMachine(FurnaceState& aFurnace, Log::LogService* aLog);
         ~StateMachine() = default;
         [[nodiscard]] StateId GetState() const;
         [[nodiscard]] bool CanTransition(const StateId& aToState);
@@ -26,7 +28,7 @@ namespace HeatTreatFurnace::Furnace
         //Actions
 
     private:
-        std::map<StateId, BaseState&> myStates;
+        etl::map<StateId, BaseState&, NUM_STATES> myStates;
 
         // static StateMap CreateDefaultStates(Furnace* furnace);
         StateId myCurrentState;
@@ -34,9 +36,9 @@ namespace HeatTreatFurnace::Furnace
 
         //The Action would have asked that the loaded profile be replaced with this, which will happen when the Load() transition happens.
         std::unique_ptr<Profile> myProfileToLoad;
-        LogService* myLog;
+        Log::LogService* myLog;
 
-        Furnace& myFurnace;
+        FurnaceState& myFurnace;
 
         std::unique_ptr<IdleState> myIdleState;
         std::unique_ptr<LoadedState> myLoadedState;
@@ -47,7 +49,7 @@ namespace HeatTreatFurnace::Furnace
         std::unique_ptr<ErrorState> myErrorState;
         std::unique_ptr<WaitingForTempState> myWaitingForTempState;
 
-        const etl::map<StateId, std::set<StateId>, 10> myValidTransitions = {
+        const etl::map<StateId, etl::set<StateId, NUM_STATES>, NUM_STATES> myValidTransitions = {
             {StateId::IDLE, {StateId::LOADED, StateId::ERROR}},
             {StateId::LOADED, {StateId::IDLE, StateId::RUNNING, StateId::ERROR}},
             {StateId::RUNNING,

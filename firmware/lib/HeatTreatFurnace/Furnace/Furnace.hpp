@@ -3,7 +3,7 @@
 
 namespace HeatTreatFurnace::Furnace
 {
-    class Furnace
+    class FurnaceState
     {
     };
 }

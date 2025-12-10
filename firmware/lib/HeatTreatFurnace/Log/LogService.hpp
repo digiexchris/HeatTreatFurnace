@@ -1,40 +1,46 @@
 #pragma once
 
 #include "LogBackend.hpp"
-#include <vector>
-#include <memory>
 #include <format>
 #include <string_view>
 #include <string>
+#include <etl/vector.h>
 
 namespace HeatTreatFurnace::Log
 {
+    constexpr uint16_t MAX_LOG_BACKENDS = 4;
+    static constexpr size_t MAX_MESSAGE_LENGTH = 256;
+    using Message = etl::string<MAX_MESSAGE_LENGTH>;
+
     class LogService
     {
     public:
-        using LogBackendPtr = std::shared_ptr<LogBackend>;
-
-        explicit LogService(std::vector<LogBackendPtr> aBackends);
-
-        void AddBackend(std::unique_ptr<LogBackend> aBackend);
+        // using LogBackendPtr = std::unique_ptr<LogBackend>;
+        using LogBackendVec = etl::vector<LogBackend*, MAX_LOG_BACKENDS>;
 
         template <typename... Args>
-        void Log(LogLevel aLevel, std::string_view aDomain, std::string_view aFormat, Args&&... aArgs)
+        explicit LogService(Args*... aBackends)
         {
-            std::string message = std::vformat(aFormat, std::make_format_args(aArgs...));
+            (myBackends.push_back(aBackends), ...);
+        }
 
-            for (auto& backend : myBackends)
+        void AddBackend(LogBackend* aBackend)
+        {
+            myBackends.push_back(aBackend);
+        }
+
+        template <typename... Args>
+        void Log(LogLevel aLevel, const etl::string_view& aDomain, etl::string_view aFormat, Args&&... aArgs)
+        {
+            Message message = std::format(aFormat, aArgs...);
+
+            for (auto backend : myBackends)
             {
                 backend->WriteLog(aLevel, aDomain, message);
             }
         }
 
-        //Return a pointer to a particular backend
-        //Might be useful for changing a min level after construction of this service
-        template <typename T>
-        std::weak_ptr<T> GetBackend();
-
     private:
-        std::vector<LogBackendPtr> myBackends;
+        LogBackendVec myBackends;
     };
 } //namespace Log

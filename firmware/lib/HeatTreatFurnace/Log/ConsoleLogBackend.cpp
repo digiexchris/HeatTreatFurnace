@@ -10,7 +10,7 @@ namespace HeatTreatFurnace::Log
     {
     }
 
-    void ConsoleLogBackend::WriteLog(LogLevel aLevel, std::string_view aDomain, std::string_view aMessage)
+    void ConsoleLogBackend::WriteLog(LogLevel aLevel, etl::string_view aDomain, etl::string_view aMessage)
     {
         std::ostream& stream = (myUseStderrForErrors && (aLevel == LogLevel::Error || aLevel == LogLevel::Warn))
             ? std::cerr
@@ -19,7 +19,7 @@ namespace HeatTreatFurnace::Log
         stream << "[" << ToString(aLevel) << "] [" << aDomain << "] " << aMessage << "\n";
     }
 
-    bool ConsoleLogBackend::ShouldLog(LogLevel aLevel, std::string_view aDomain) const
+    bool ConsoleLogBackend::ShouldLog(LogLevel aLevel, etl::string_view aDomain) const
     {
         bool shouldLog;
 
@@ -29,7 +29,7 @@ namespace HeatTreatFurnace::Log
         }
         else
         {
-            std::string domainStr(aDomain);
+            std::string MAKE ETL STRING, MAKE A STRUCT FOR DOMAINS domainStr(aDomain);
             auto it = myDomains.find(domainStr);
             if (it == myDomains.end())
             {

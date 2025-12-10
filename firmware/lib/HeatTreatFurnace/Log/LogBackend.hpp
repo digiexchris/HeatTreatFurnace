@@ -12,7 +12,7 @@ namespace HeatTreatFurnace::Log
     public:
         virtual ~LogBackend() = default;
 
-        virtual void WriteLog(LogLevel aLevel, std::string_view aDomain, std::string_view aMessage) = 0;
+        virtual void WriteLog(LogLevel aLevel, etl::string_view aDomain, etl::string_view aMessage) = 0;
 
         virtual void SetMinLevel(LogLevel aMinLevel) = 0;
 
@@ -24,20 +24,20 @@ namespace HeatTreatFurnace::Log
     protected:
         // In general, log if requested level is <= configured level (lower numeric value = higher priority)
         // None=0, Error=1, Warn=2, Info=3, Debug=4, Verbose=5
-        [[nodiscard]] virtual bool ShouldLog(LogLevel aLevel, std::string_view aDomain) const = 0;
+        [[nodiscard]] virtual bool ShouldLog(LogLevel aLevel, etl::string_view aDomain) const = 0;
     };
 
     class NullLogBackend : public LogBackend
     {
     public:
         NullLogBackend() = default;
-        void WriteLog(LogLevel aLevel, std::string_view aDomain, std::string_view aMessage) override;
+        void WriteLog(LogLevel aLevel, etl::string_view aDomain, etl::string_view aMessage) override;
 
         void SetMinLevel(LogLevel aMinLevel) override;
 
         [[nodiscard]] LogLevel GetMinLevel() const override;
 
     protected:
-        [[nodiscard]] bool ShouldLog(LogLevel aLevel, std::string_view aDomain) const override;
+        [[nodiscard]] bool ShouldLog(LogLevel aLevel, etl::string_view aDomain) const override;
     };
 } // namespace log

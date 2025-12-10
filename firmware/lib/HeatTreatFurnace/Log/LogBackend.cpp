@@ -2,11 +2,11 @@
 
 namespace HeatTreatFurnace::Log
 {
-    void NullLogBackend::WriteLog(LogLevel aLevel, std::string_view aDomain, std::string_view aMessage)
+    void NullLogBackend::WriteLog(LogLevel aLevel, etl::string_view aDomain, etl::string_view aMessage)
     {
     }
 
-    bool NullLogBackend::ShouldLog(LogLevel aLevel, std::string_view aDomain) const
+    bool NullLogBackend::ShouldLog(LogLevel aLevel, etl::string_view aDomain) const
     {
         return false;
     }

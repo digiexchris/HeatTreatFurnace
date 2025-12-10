@@ -14,7 +14,7 @@ namespace HeatTreatFurnace::Log
     public:
         explicit ConsoleLogBackend(bool aUseStderrForErrors = true);
 
-        void WriteLog(LogLevel aLevel, std::string_view aDomain, std::string_view aMessage) override;
+        void WriteLog(LogLevel aLevel, etl::string_view aDomain, etl::string_view aMessage) override;
 
         void SetMinLevel(LogLevel aMinLevel) override;
 
@@ -23,7 +23,7 @@ namespace HeatTreatFurnace::Log
     protected:
         // Log if requested level is <= configured level (lower numeric value = higher priority)
         // None=0, Error=1, Warn=2, Info=3, Debug=4, Verbose=5
-        [[nodiscard]] bool ShouldLog(LogLevel aLevel, std::string_view aDomain) const override;
+        [[nodiscard]] bool ShouldLog(LogLevel aLevel, etl::string_view aDomain) const override;
 
     private:
         bool myUseStderrForErrors;

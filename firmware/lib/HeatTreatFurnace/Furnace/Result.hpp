@@ -3,20 +3,23 @@
 
 #include <ostream>
 #include <string>
+#include "Log/LogService.hpp"
+
+#include <etl/string.h>
 
 namespace HeatTreatFurnace::Furnace
 {
     struct Result
     {
         bool success;
-        std::string message;
+        Log::Message message;
 
         explicit operator bool() const
         {
             return success;
         }
 
-        explicit operator std::string() const
+        explicit operator Log::Message() const
         {
             return message;
         }

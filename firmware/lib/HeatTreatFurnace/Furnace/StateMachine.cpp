@@ -2,16 +2,13 @@
 
 #include <cassert>
 #include <memory>
-#include <utility>
-
-#include "Furnace.hpp"
 #include "State.hpp"
 #include "Log/LogService.hpp"
 #include "Safety.hpp"
 
 namespace HeatTreatFurnace::Furnace
 {
-    StateMachine::StateMachine(Furnace& aFurnace, LogService* aLog) :
+    StateMachine::StateMachine(FurnaceState& aFurnace, Log::LogService* aLog) :
         myLog(aLog), myFurnace(aFurnace),
         myCurrentState(StateId::IDLE)
     {
@@ -47,7 +44,7 @@ namespace HeatTreatFurnace::Furnace
         assert(result.second);
     }
 
-    HeatTreatFurnace::Furnace::StateId StateMachine::GetState() const
+    StateId StateMachine::GetState() const
     {
         return myCurrentState;
     }
@@ -60,7 +57,7 @@ namespace HeatTreatFurnace::Furnace
             return true;
         }
 
-        const std::set<StateId>& set = myValidTransitions.at(myCurrentState);
+        const etl::set<StateId, NUM_STATES>& set = myValidTransitions.at(myCurrentState);
 
         if (auto search = set.find(aToState); search == set.end())
         {
@@ -72,14 +69,15 @@ namespace HeatTreatFurnace::Furnace
 
     bool StateMachine::TransitionTo(StateId aToState)
     {
-        StateName fromState = myStates.at(myCurrentState).Name();
+        StateName fromStateName = myStates.at(myCurrentState).Name();
+        StateName toStateName = myStates.at(aToState).Name();
         //Safety reset on ERROR, so always allow the transition
         if (aToState == StateId::ERROR)
         {
             auto result = myStates.at(StateId::ERROR).OnEnter();
             DISCARD(result);
 
-            myLog->Log(Log::LogLevel::Debug, "StateMachine", "Transitioned to ERROR from {}", fromState);
+            myLog->Log(Log::LogLevel::Debug, "StateMachine", "Transitioned to ERROR from {}", fromStateName);
             return true;
         }
 
@@ -89,16 +87,21 @@ namespace HeatTreatFurnace::Furnace
             return false;
         }
 
-        Result res = myStates[myCurrentState]->OnExit();
+        Result res = myStates.at(myCurrentState).OnExit();
         if (!res)
         {
             //todo: Send logging command
-            TransitionTo(StateId::ERROR);
+            auto errorRes = TransitionTo(StateId::ERROR);
+            if (!errorRes)
+            {
+                myLog->Log(Log::LogLevel::Error, "StateMachine", "Failed to transition to ERROR from {}", fromStateName);
+            }
+            myLog->Log(Log::LogLevel::Error, "StateMachine", "Failed to transition from {} to {}, {}", fromStateName, toStateName, res.message);
             return false;
         }
         myCurrentState = StateId::TRANSITIONING;
 
-        res = myStates[aToState]->OnEnter();
+        res = myStates[aToState].OnEnter();
         if (!res)
         {
             //todo: Send logging command
