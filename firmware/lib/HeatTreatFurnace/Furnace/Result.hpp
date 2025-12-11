@@ -12,14 +12,14 @@ namespace HeatTreatFurnace::Furnace
     struct Result
     {
         bool success;
-        Log::Message message;
+        Log::LogMessage message;
 
         explicit operator bool() const
         {
             return success;
         }
 
-        explicit operator Log::Message() const
+        explicit operator Log::LogMessage() const
         {
             return message;
         }

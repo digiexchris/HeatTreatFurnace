@@ -77,7 +77,7 @@ namespace HeatTreatFurnace::Furnace
             auto result = myStates.at(StateId::ERROR).OnEnter();
             DISCARD(result);
 
-            myLog->Log(Log::LogLevel::Debug, "StateMachine", "Transitioned to ERROR from {}", fromStateName);
+            Log(Log::LogLevel::Debug, "Transitioned to ERROR from {}", fromStateName);
             return true;
         }
 
@@ -90,22 +90,25 @@ namespace HeatTreatFurnace::Furnace
         Result res = myStates.at(myCurrentState).OnExit();
         if (!res)
         {
-            //todo: Send logging command
             auto errorRes = TransitionTo(StateId::ERROR);
             if (!errorRes)
             {
-                myLog->Log(Log::LogLevel::Error, "StateMachine", "Failed to transition to ERROR from {}", fromStateName);
+                Log(Log::LogLevel::Error, "Failed to transition to ERROR from {}", fromStateName);
             }
-            myLog->Log(Log::LogLevel::Error, "StateMachine", "Failed to transition from {} to {}, {}", fromStateName, toStateName, res.message);
+            Log(Log::LogLevel::Error, "Failed to transition via {}.OnExit() to {}, {}", fromStateName, toStateName, res.message);
             return false;
         }
         myCurrentState = StateId::TRANSITIONING;
 
-        res = myStates[aToState].OnEnter();
+        res = myStates.at(aToState).OnEnter();
         if (!res)
         {
-            //todo: Send logging command
-            TransitionTo(StateId::ERROR);
+            auto errorRes = TransitionTo(StateId::ERROR);
+            if (!errorRes)
+            {
+                Log(Log::LogLevel::Error, "Failed to transition to ERROR from {}", fromStateName);
+            }
+            Log(Log::LogLevel::Error, "Failed to transition via {}.OnEnter() from {}, {}", toStateName, fromStateName, res.message);
             return false;
         }
         myCurrentState = aToState;

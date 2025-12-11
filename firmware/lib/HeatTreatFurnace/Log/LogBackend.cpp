@@ -6,7 +6,7 @@ namespace HeatTreatFurnace::Log
     {
     }
 
-    bool NullLogBackend::ShouldLog(LogLevel aLevel, etl::string_view aDomain) const
+    bool NullLogBackend::ShouldLog(LogLevel aLevel) const
     {
         return false;
     }

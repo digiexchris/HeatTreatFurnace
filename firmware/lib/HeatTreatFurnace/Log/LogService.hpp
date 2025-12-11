@@ -10,7 +10,8 @@ namespace HeatTreatFurnace::Log
 {
     constexpr uint16_t MAX_LOG_BACKENDS = 4;
     static constexpr size_t MAX_MESSAGE_LENGTH = 256;
-    using Message = etl::string<MAX_MESSAGE_LENGTH>;
+    using LogMessage = etl::string<MAX_MESSAGE_LENGTH>;
+    using LogDomain = etl::string<16>;
 
     class LogService
     {
@@ -32,7 +33,7 @@ namespace HeatTreatFurnace::Log
         template <typename... Args>
         void Log(LogLevel aLevel, const etl::string_view& aDomain, etl::string_view aFormat, Args&&... aArgs)
         {
-            Message message = std::format(aFormat, aArgs...);
+            LogMessage message = std::format(aFormat, aArgs...);
 
             for (auto backend : myBackends)
             {
@@ -42,5 +43,28 @@ namespace HeatTreatFurnace::Log
 
     private:
         LogBackendVec myBackends;
+    };
+
+    class Loggable
+    {
+    public:
+        explicit Loggable(LogService& aLogService) :
+            myLogService(aLogService)
+        {
+
+        }
+        ;
+        virtual ~Loggable() = default;
+
+    protected:
+        [[nodiscard]] virtual const etl::string_view& GetLogDomain() = 0;
+
+        template <typename... Args>
+        void Log(LogLevel aLevel, const etl::string_view& aFormat, Args&&... aArgs)
+        {
+            myLogService.Log(aLevel, GetLogDomain(), aFormat, std::forward<Args>(aArgs)...);
+        }
+
+        LogService& myLogService;
     };
 } //namespace Log

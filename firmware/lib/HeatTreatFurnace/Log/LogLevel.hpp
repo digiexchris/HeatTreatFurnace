@@ -11,14 +11,15 @@
 
 namespace HeatTreatFurnace::Log
 {
+
     enum class LogLevel: std::uint16_t
     {
-        None,// No logging
-        Error,// Error level
-        Warn,// Warning level
-        Info,// Information level
-        Debug,// Debug level
-        Verbose// Verbose level
+        None, // No logging
+        Error, // Error level
+        Warn, // Warning level
+        Info, // Information level
+        Debug, // Debug level
+        Verbose // Verbose level
     };
 
     static constexpr size_t MAX_LOG_LEVEL_NAME_LENGTH = 16;

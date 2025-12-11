@@ -19,28 +19,13 @@ namespace HeatTreatFurnace::Log
         stream << "[" << ToString(aLevel) << "] [" << aDomain << "] " << aMessage << "\n";
     }
 
-    bool ConsoleLogBackend::ShouldLog(LogLevel aLevel, etl::string_view aDomain) const
+    bool ConsoleLogBackend::ShouldLog(LogLevel aLevel) const
     {
-        bool shouldLog;
+        bool shouldLog = true;
 
-        if (aLevel == LogLevel::None)
+        if (aLevel == LogLevel::None || aLevel <= myMinLevel)
         {
             shouldLog = false;
-        }
-        else
-        {
-            std::string MAKE ETL STRING, MAKE A STRUCT FOR DOMAINS domainStr(aDomain);
-            auto it = myDomains.find(domainStr);
-            if (it == myDomains.end())
-            {
-                shouldLog = false;
-            }
-            else
-            {
-                // Log if requested level is <= configured level (lower numeric value = higher priority)
-                // None=0, Error=1, Warn=2, Info=3, Debug=4, Verbose=5
-                shouldLog = aLevel <= myMinLevel;
-            }
         }
         return shouldLog;
     }

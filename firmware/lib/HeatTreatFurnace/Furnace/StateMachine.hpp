@@ -10,7 +10,7 @@ namespace HeatTreatFurnace::Furnace
 {
     class Furnace;
 
-    class StateMachine
+    class StateMachine : public Log::Loggable
     {
     public:
         constexpr static size_t NUM_STATES = static_cast<size_t>(StateId::NUM_STATES);
@@ -20,12 +20,18 @@ namespace HeatTreatFurnace::Furnace
          * StateMap will be moved to myState
          */
         explicit StateMachine(FurnaceState& aFurnace, Log::LogService* aLog);
-        ~StateMachine() = default;
+        ~StateMachine() override = default;
         [[nodiscard]] StateId GetState() const;
         [[nodiscard]] bool CanTransition(const StateId& aToState);
         bool TransitionTo(StateId aToState);
 
         //Actions
+
+    protected:
+        [[nodiscard]] const etl::string_view& GetLogDomain() override
+        {
+            return "StateMachine";
+        };
 
     private:
         etl::map<StateId, BaseState&, NUM_STATES> myStates;
