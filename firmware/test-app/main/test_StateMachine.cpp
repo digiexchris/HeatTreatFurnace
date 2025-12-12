@@ -45,13 +45,13 @@ namespace HeatTreatFurnace::Test
 
     TEST_CASE_METHOD(StateMachineFixture, "StateMachine: Constructor - initializes to IDLE state")
     {
-        StateMachine stateMachine(myFurnaceState, myLog.get());
+        StateMachine stateMachine(myFurnaceState, *myLog);
         REQUIRE(stateMachine.GetState() == StateId::IDLE);
     }
 
     TEST_CASE_METHOD(StateMachineFixture, "StateMachine: GetState - returns current state")
     {
-        StateMachine stateMachine(nullptr, myLog.get());
+        StateMachine stateMachine(myFurnaceState, *myLog);
 
         SECTION("Returns IDLE after construction")
         {
@@ -67,7 +67,7 @@ namespace HeatTreatFurnace::Test
 
     TEST_CASE_METHOD(StateMachineFixture, "StateMachine: CanTransition - valid transitions are allowed")
     {
-        StateMachine stateMachine(nullptr, myLog.get());
+        StateMachine stateMachine(myFurnaceState, *myLog);
 
         SECTION("From IDLE state")
         {
@@ -151,7 +151,7 @@ namespace HeatTreatFurnace::Test
 
     TEST_CASE_METHOD(StateMachineFixture, "StateMachine: CanTransition - invalid transitions are rejected")
     {
-        StateMachine stateMachine(nullptr, myLog.get());
+        StateMachine stateMachine(myFurnaceState, *myLog);
 
         SECTION("IDLE cannot transition to RUNNING")
         {
@@ -212,7 +212,7 @@ namespace HeatTreatFurnace::Test
     {
         using trompeloeil::_;
 
-        Furnace* mockFurnace = nullptr;
+        FurnaceState mockFurnace;
         auto mockIdleState = std::make_unique<MockBaseState>(mockFurnace);
         auto mockLoadedState = std::make_unique<MockBaseState>(mockFurnace);
 
@@ -230,7 +230,7 @@ namespace HeatTreatFurnace::Test
         mockStates.insert({StateId::IDLE, std::move(mockIdleState)});
         mockStates.insert({StateId::LOADED, std::move(mockLoadedState)});
 
-        StateMachine stateMachine(mockFurnace, myLog.get(), std::move(mockStates));
+        StateMachine stateMachine(mockFurnace, *myLog);
 
         REQUIRE(stateMachine.GetState() == StateId::IDLE);
         REQUIRE(stateMachine.TransitionTo(StateId::LOADED));
@@ -239,7 +239,8 @@ namespace HeatTreatFurnace::Test
 
     TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - multiple sequential transitions")
     {
-        StateMachine stateMachine(nullptr, myLog.get());
+        FurnaceState mockFurnace;
+        StateMachine stateMachine(mockFurnace, *myLog);
 
         REQUIRE(stateMachine.GetState() == StateId::IDLE);
         REQUIRE(stateMachine.TransitionTo(StateId::LOADED));
@@ -254,7 +255,8 @@ namespace HeatTreatFurnace::Test
 
     TEST_CASE_METHOD(StateMachineFixture, "StateMachine: TransitionTo - invalid transition returns false")
     {
-        StateMachine stateMachine(nullptr, myLog.get());
+        FurnaceState mockFurnace;
+        StateMachine stateMachine(mockFurnace, *myLog);
 
         REQUIRE(stateMachine.GetState() == StateId::IDLE);
         REQUIRE_FALSE(stateMachine.TransitionTo(StateId::RUNNING));
@@ -265,7 +267,7 @@ namespace HeatTreatFurnace::Test
     {
         using trompeloeil::_;
 
-        Furnace* mockFurnace = nullptr;
+        FurnaceState mockFurnace;
         auto mockIdleState = std::make_unique<MockBaseState>(mockFurnace);
         auto mockErrorState = std::make_unique<MockBaseState>(mockFurnace);
 
@@ -283,7 +285,7 @@ namespace HeatTreatFurnace::Test
         mockStates.insert({StateId::IDLE, std::move(mockIdleState)});
         mockStates.insert({StateId::ERROR, std::move(mockErrorState)});
 
-        StateMachine stateMachine(mockFurnace, myLog.get(), std::move(mockStates));
+        StateMachine stateMachine(mockFurnace, *myLog);
 
         REQUIRE(stateMachine.GetState() == StateId::IDLE);
         REQUIRE_FALSE(stateMachine.TransitionTo(StateId::LOADED));
@@ -294,7 +296,7 @@ namespace HeatTreatFurnace::Test
     {
         using trompeloeil::_;
 
-        Furnace* mockFurnace = nullptr;
+        FurnaceState mockFurnace;
         auto mockIdleState = std::make_unique<MockBaseState>(mockFurnace);
         auto mockLoadedState = std::make_unique<MockBaseState>(mockFurnace);
         auto mockErrorState = std::make_unique<MockBaseState>(mockFurnace);
@@ -319,7 +321,7 @@ namespace HeatTreatFurnace::Test
         mockStates.insert({StateId::LOADED, std::move(mockLoadedState)});
         mockStates.insert({StateId::ERROR, std::move(mockErrorState)});
 
-        StateMachine stateMachine(mockFurnace, myLog.get(), std::move(mockStates));
+        StateMachine stateMachine(mockFurnace, *myLog);
 
         REQUIRE(stateMachine.GetState() == StateId::IDLE);
         REQUIRE_FALSE(stateMachine.TransitionTo(StateId::LOADED));

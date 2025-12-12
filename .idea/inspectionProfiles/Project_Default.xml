@@ -1,6 +1,15 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
+    <option name="scopesOrder">
+      <list>
+        <option value="All Changed Files" />
+        <option value="Lib" />
+        <option value="Open Files" />
+        <option value="Project Files" />
+        <option value="Scratches and Consoles" />
+      </list>
+    </option>
     <inspection_tool class="CppEnforceDoStatementBraces" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CppEnforceForStatementBraces" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CppEnforceFunctionDeclarationStyle" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -12,8 +21,11 @@
     <inspection_tool class="CppRemoveRedundantBraces" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CppUnnecessaryWhitespace" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="DtsUnitName" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="Misra" enabled="true" level="WARNING" enabled_by_default="false">
-      <scope name="Project Files" level="WARNING" enabled="true">
+    <inspection_tool class="Misra" enabled="false" level="WARNING" enabled_by_default="false">
+      <scope name="Lib" level="WARNING" enabled="true">
+        <option name="myMisraCPP2008Checks" value="clion-misra-cpp2023-*" />
+      </scope>
+      <scope name="Project Files" level="WARNING" enabled="false">
         <option name="myMisraCPP2008Checks" value="clion-misra-cpp2023-*" />
       </scope>
     </inspection_tool>

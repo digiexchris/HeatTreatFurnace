@@ -30,7 +30,7 @@ namespace HeatTreatFurnace::Furnace
     protected:
         [[nodiscard]] const etl::string_view& GetLogDomain() override
         {
-            return "StateMachine";
+            return myDomain;
         };
 
     private:
@@ -46,15 +46,17 @@ namespace HeatTreatFurnace::Furnace
 
         FurnaceState& myFurnace;
 
-        std::unique_ptr<TransitioningState> myTransitioningState;
-        std::unique_ptr<IdleState> myIdleState;
-        std::unique_ptr<LoadedState> myLoadedState;
-        std::unique_ptr<RunningState> myRunningState;
-        std::unique_ptr<PausedState> myPausedState;
-        std::unique_ptr<CompletedState> myCompletedState;
-        std::unique_ptr<CancelledState> myCancelledState;
-        std::unique_ptr<ErrorState> myErrorState;
-        std::unique_ptr<WaitingForTempState> myWaitingForTempState;
+        TransitioningState myTransitioningState;
+        IdleState myIdleState;
+        LoadedState myLoadedState;
+        RunningState myRunningState;
+        PausedState myPausedState;
+        CompletedState myCompletedState;
+        CancelledState myCancelledState;
+        ErrorState myErrorState;
+        WaitingForTempState myWaitingForTempState;
+
+        static constexpr etl::string_view myDomain = "StateMachine";
 
         const etl::map<StateId, etl::set<StateId, NUM_STATES>, NUM_STATES> myValidTransitions = {
             {StateId::IDLE, {StateId::LOADED, StateId::ERROR}},

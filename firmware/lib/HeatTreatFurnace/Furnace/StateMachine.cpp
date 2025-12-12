@@ -11,32 +11,28 @@ namespace HeatTreatFurnace::Furnace
     StateMachine::StateMachine(FurnaceState& aFurnace, Log::LogService& aLog) :
         Loggable(aLog),
         myLog(aLog), myFurnace(aFurnace),
-        myCurrentState(StateId::IDLE)
+        myCurrentState(StateId::IDLE),
+        myTransitioningState(TransitioningState(aFurnace)),
+        myIdleState(IdleState(aFurnace)),
+        myLoadedState(LoadedState(aFurnace)),
+        myRunningState(RunningState(aFurnace)),
+        myPausedState(PausedState(aFurnace)),
+        myCompletedState(CompletedState(aFurnace)),
+        myCancelledState(CancelledState(aFurnace)),
+        myErrorState(ErrorState(aFurnace)),
+        myWaitingForTempState(WaitingForTempState(aFurnace))
     {
 
-        //MISRA 21.6.1 exception:
-        //Furnace is created very early on in the boot of the firmware.
-        //These objects are never allocated/reallocated after this point.
-        myTransitioningState = std::make_unique<TransitioningState>(aFurnace);
-        myIdleState = std::make_unique<IdleState>(aFurnace);
-        myLoadedState = std::make_unique<LoadedState>(aFurnace);
-        myRunningState = std::make_unique<RunningState>(aFurnace);
-        myPausedState = std::make_unique<PausedState>(aFurnace);
-        myCompletedState = std::make_unique<CompletedState>(aFurnace);
-        myCancelledState = std::make_unique<CancelledState>(aFurnace);
-        myErrorState = std::make_unique<ErrorState>(aFurnace);
-        myWaitingForTempState = std::make_unique<WaitingForTempState>(aFurnace);
-
         myStates = etl::make_map<StateId, BaseState&>(
-            etl::pair{StateId::TRANSITIONING, *myTransitioningState},
-            etl::pair{StateId::IDLE, *myIdleState},
-            etl::pair{StateId::LOADED, *myLoadedState},
-            etl::pair{StateId::RUNNING, *myRunningState},
-            etl::pair{StateId::PAUSED, *myPausedState},
-            etl::pair{StateId::COMPLETED, *myCompletedState},
-            etl::pair{StateId::CANCELLED, *myCancelledState},
-            etl::pair{StateId::ERROR, *myErrorState},
-            etl::pair{StateId::WAITING_FOR_TEMP, *myWaitingForTempState}
+            etl::pair{StateId::TRANSITIONING, myTransitioningState},
+            etl::pair{StateId::IDLE, myIdleState},
+            etl::pair{StateId::LOADED, myLoadedState},
+            etl::pair{StateId::RUNNING, myRunningState},
+            etl::pair{StateId::PAUSED, myPausedState},
+            etl::pair{StateId::COMPLETED, myCompletedState},
+            etl::pair{StateId::CANCELLED, myCancelledState},
+            etl::pair{StateId::ERROR, myErrorState},
+            etl::pair{StateId::WAITING_FOR_TEMP, myWaitingForTempState}
             );
 
     }
