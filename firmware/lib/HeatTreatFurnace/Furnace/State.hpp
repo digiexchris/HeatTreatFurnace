@@ -88,6 +88,17 @@ namespace HeatTreatFurnace::Furnace
         StateId myStateId;
     };
 
+    class TransitioningState : public BaseState
+    {
+    public:
+        explicit TransitioningState(FurnaceState& aFurnace) :
+            BaseState(aFurnace, StateId::TRANSITIONING)
+        {
+        }
+
+        [[nodiscard]] StateId State() const override { return StateId::TRANSITIONING; }
+    };
+
     class IdleState : public BaseState
     {
     public:

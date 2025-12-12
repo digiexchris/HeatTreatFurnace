@@ -7,6 +7,7 @@
 simulator/node_modules/
 
 build/
+.cache/
 
 bak/
 /cmake-build-*

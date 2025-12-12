@@ -19,7 +19,7 @@ namespace HeatTreatFurnace::Furnace
         /** @brief State Machine dependencies:
          * StateMap will be moved to myState
          */
-        explicit StateMachine(FurnaceState& aFurnace, Log::LogService* aLog);
+        explicit StateMachine(FurnaceState& aFurnace, Log::LogService& aLog);
         ~StateMachine() override = default;
         [[nodiscard]] StateId GetState() const;
         [[nodiscard]] bool CanTransition(const StateId& aToState);
@@ -42,10 +42,11 @@ namespace HeatTreatFurnace::Furnace
 
         //The Action would have asked that the loaded profile be replaced with this, which will happen when the Load() transition happens.
         std::unique_ptr<Profile> myProfileToLoad;
-        Log::LogService* myLog;
+        Log::LogService& myLog;
 
         FurnaceState& myFurnace;
 
+        std::unique_ptr<TransitioningState> myTransitioningState;
         std::unique_ptr<IdleState> myIdleState;
         std::unique_ptr<LoadedState> myLoadedState;
         std::unique_ptr<RunningState> myRunningState;

@@ -8,15 +8,16 @@
 
 namespace HeatTreatFurnace::Furnace
 {
-    StateMachine::StateMachine(FurnaceState& aFurnace, Log::LogService* aLog) :
+    StateMachine::StateMachine(FurnaceState& aFurnace, Log::LogService& aLog) :
+        Loggable(aLog),
         myLog(aLog), myFurnace(aFurnace),
         myCurrentState(StateId::IDLE)
     {
-        assert(aLog != nullptr);
 
         //MISRA 21.6.1 exception:
         //Furnace is created very early on in the boot of the firmware.
         //These objects are never allocated/reallocated after this point.
+        myTransitioningState = std::make_unique<TransitioningState>(aFurnace);
         myIdleState = std::make_unique<IdleState>(aFurnace);
         myLoadedState = std::make_unique<LoadedState>(aFurnace);
         myRunningState = std::make_unique<RunningState>(aFurnace);
@@ -26,22 +27,18 @@ namespace HeatTreatFurnace::Furnace
         myErrorState = std::make_unique<ErrorState>(aFurnace);
         myWaitingForTempState = std::make_unique<WaitingForTempState>(aFurnace);
 
-        auto result = myStates.emplace(StateId::IDLE, *myIdleState);
-        assert(result.second);
-        result = myStates.emplace(StateId::LOADED, *myLoadedState);
-        assert(result.second);
-        result = myStates.emplace(StateId::RUNNING, *myRunningState);
-        assert(result.second);
-        result = myStates.emplace(StateId::PAUSED, *myPausedState);
-        assert(result.second);
-        result = myStates.emplace(StateId::COMPLETED, *myCompletedState);
-        assert(result.second);
-        result = myStates.emplace(StateId::CANCELLED, *myCancelledState);
-        assert(result.second);
-        result = myStates.emplace(StateId::ERROR, *myErrorState);
-        assert(result.second);
-        result = myStates.emplace(StateId::WAITING_FOR_TEMP, *myWaitingForTempState);
-        assert(result.second);
+        myStates = etl::make_map<StateId, BaseState&>(
+            etl::pair{StateId::TRANSITIONING, *myTransitioningState},
+            etl::pair{StateId::IDLE, *myIdleState},
+            etl::pair{StateId::LOADED, *myLoadedState},
+            etl::pair{StateId::RUNNING, *myRunningState},
+            etl::pair{StateId::PAUSED, *myPausedState},
+            etl::pair{StateId::COMPLETED, *myCompletedState},
+            etl::pair{StateId::CANCELLED, *myCancelledState},
+            etl::pair{StateId::ERROR, *myErrorState},
+            etl::pair{StateId::WAITING_FOR_TEMP, *myWaitingForTempState}
+            );
+
     }
 
     StateId StateMachine::GetState() const

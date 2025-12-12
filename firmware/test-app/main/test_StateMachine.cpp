@@ -8,6 +8,8 @@
 #include "Log/LogBackend.hpp"
 #include <memory>
 
+#include "Furnace/Furnace.hpp"
+
 namespace HeatTreatFurnace::Test
 {
     using namespace HeatTreatFurnace::Furnace;
@@ -33,15 +35,17 @@ namespace HeatTreatFurnace::Test
 
         StateMachineFixture()
         {
-            myLog = std::make_shared<LogService>(std::initializer_list<std::unique_ptr<LogBackend>>(std::unique_ptr<NullLogBackend>()));
+            myLog = std::make_shared<LogService>(&myNullLogBackend);
         }
 
+        FurnaceState myFurnaceState;
         LogService::LogBackendVec myLogBackends{};
+        NullLogBackend myNullLogBackend;
     };
 
     TEST_CASE_METHOD(StateMachineFixture, "StateMachine: Constructor - initializes to IDLE state")
     {
-        StateMachine stateMachine(nullptr, myLog.get());
+        StateMachine stateMachine(myFurnaceState, myLog.get());
         REQUIRE(stateMachine.GetState() == StateId::IDLE);
     }
 

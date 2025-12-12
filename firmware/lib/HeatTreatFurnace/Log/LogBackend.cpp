@@ -10,13 +10,4 @@ namespace HeatTreatFurnace::Log
     {
         return false;
     }
-
-    void NullLogBackend::SetMinLevel(LogLevel aMinLevel)
-    {
-    }
-
-    LogLevel NullLogBackend::GetMinLevel() const
-    {
-        return LogLevel::None;
-    }
 } //namespace log
