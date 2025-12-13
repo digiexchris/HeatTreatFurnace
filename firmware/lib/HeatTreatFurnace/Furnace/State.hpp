@@ -29,6 +29,8 @@ namespace HeatTreatFurnace::Furnace
         CANCELLED,
         ERROR,
         WAITING_FOR_TEMP,
+        MANUAL_TEMP,
+        PROFILE_TEMP_OVERRIDE,
         NUM_STATES
     };
 
