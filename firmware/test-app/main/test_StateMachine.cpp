@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/trompeloeil.hpp>
-
+#include "etl_profile.h"
 #include "Furnace/StateMachine.hpp"
 #include "Furnace/State.hpp"
 #include "Furnace/Result.hpp"

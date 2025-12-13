@@ -1,7 +1,6 @@
 #include "StateMachine.hpp"
 
-#include <cassert>
-#include <memory>
+#include <etl/reference_flat_map.h>
 #include "State.hpp"
 #include "Log/LogService.hpp"
 #include "Safety.hpp"
@@ -23,18 +22,17 @@ namespace HeatTreatFurnace::Furnace
         myWaitingForTempState(WaitingForTempState(aFurnace))
     {
 
-        myStates = etl::make_map<StateId, BaseState&>(
-            etl::pair{StateId::TRANSITIONING, myTransitioningState},
-            etl::pair{StateId::IDLE, myIdleState},
-            etl::pair{StateId::LOADED, myLoadedState},
-            etl::pair{StateId::RUNNING, myRunningState},
-            etl::pair{StateId::PAUSED, myPausedState},
-            etl::pair{StateId::COMPLETED, myCompletedState},
-            etl::pair{StateId::CANCELLED, myCancelledState},
-            etl::pair{StateId::ERROR, myErrorState},
-            etl::pair{StateId::WAITING_FOR_TEMP, myWaitingForTempState}
-            );
-
+        myStates = StateMap {
+        {StateId::TRANSITIONING, myTransitioningState},
+        {StateId::IDLE, myIdleState},
+        {StateId::LOADED, myLoadedState},
+        {StateId::RUNNING, myRunningState},
+        {StateId::PAUSED, myPausedState},
+        {StateId::COMPLETED, myCompletedState},
+        {StateId::CANCELLED, myCancelledState},
+        {StateId::ERROR, myErrorState},
+        {StateId::WAITING_FOR_TEMP, myWaitingForTempState}
+        };
     }
 
     StateId StateMachine::GetState() const

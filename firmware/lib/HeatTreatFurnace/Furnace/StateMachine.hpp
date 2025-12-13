@@ -4,6 +4,7 @@
 #include "etl/set.h"
 #include "Profile.hpp"
 #include "State.hpp"
+#include "etl/reference_flat_map.h"
 #include "Log/LogService.hpp"
 
 namespace HeatTreatFurnace::Furnace
@@ -14,7 +15,7 @@ namespace HeatTreatFurnace::Furnace
     {
     public:
         constexpr static size_t NUM_STATES = static_cast<size_t>(StateId::NUM_STATES);
-        using StateMap = etl::map<StateId, std::unique_ptr<BaseState>, static_cast<uint16_t>(StateId::NUM_STATES)>;
+        using StateMap = etl::map<StateId, BaseState&, NUM_STATES>;
 
         /** @brief State Machine dependencies:
          * StateMap will be moved to myState
@@ -34,7 +35,7 @@ namespace HeatTreatFurnace::Furnace
         };
 
     private:
-        etl::map<StateId, BaseState&, NUM_STATES> myStates;
+        StateMap myStates;
 
         // static StateMap CreateDefaultStates(Furnace* furnace);
         StateId myCurrentState;
