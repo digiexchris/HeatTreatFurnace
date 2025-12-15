@@ -1,70 +1,64 @@
-// SPDX-License-Identifier: MIT
-// Copyright (c) 2025 Chris Sutton
+#include "Furnace/EventQueueManager.hpp"
+#include "Log/LogService.hpp"
 
-#include "../FSM/EventQueueManager.hpp"
-#include "../Log/LogService.hpp"
 
-namespace HeatTreatFurnace
+namespace HeatTreatFurnace::Furnace
 {
-namespace FSM
-{
-
-EventQueueManager::EventQueueManager(Log::LogService& aLogger)
-    : myQueue(),
-      myMutex(),
-      mySequence(0U),
-      myOverflowCount(0U),
-      myLogger(aLogger)
-{
-}
-
-bool EventQueueManager::Post(etl::imessage const& aMsg, EventPriority aPriority)
-{
-    std::lock_guard<std::mutex> lock(myMutex);
-
-    bool success = false;
-
-    if (!myQueue.full())
+    EventQueueManager::EventQueueManager(Log::LogService& aLogger)
+        : myQueue(),
+          myMutex(),
+          mySequence(0U),
+          myOverflowCount(0U),
+          myLogger(aLogger)
     {
-        QueuedMsg queuedMsg(aPriority, mySequence++, aMsg);
-        myQueue.push(queuedMsg);
-        success = true;
     }
-    else
-    {
-        bool shouldRouteToError = PrivHandleOverflow(aPriority);
 
-        if (shouldRouteToError)
+    bool EventQueueManager::Post(etl::imessage const& aMsg, EventPriority aPriority)
+    {
+        std::lock_guard<std::mutex> lock(myMutex);
+
+        bool success = false;
+
+        if (!myQueue.full())
         {
-            // TODO: Post EvtError to transition to ERROR state
+            QueuedMsg queuedMsg(aPriority, mySequence++, aMsg);
+            myQueue.push(queuedMsg);
+            success = true;
         }
+        else
+        {
+            bool shouldRouteToError = PrivHandleOverflow(aPriority);
+
+            if (shouldRouteToError)
+            {
+                // TODO: Post EvtError to transition to ERROR state
+            }
+        }
+
+        return success;
     }
 
-    return success;
-}
+    uint32_t EventQueueManager::GetOverflowCount() const noexcept
+    {
+        return myOverflowCount;
+    }
 
-uint32_t EventQueueManager::GetOverflowCount() const noexcept
-{
-    return myOverflowCount;
-}
+    void EventQueueManager::ResetOverflowCount() noexcept
+    {
+        myOverflowCount = 0U;
+    }
 
-void EventQueueManager::ResetOverflowCount() noexcept
-{
-    myOverflowCount = 0U;
-}
+    bool EventQueueManager::PrivHandleOverflow(EventPriority aPriority)
+    {
+        myOverflowCount++;
 
-bool EventQueueManager::PrivHandleOverflow(EventPriority aPriority)
-{
-    myOverflowCount++;
+        // Log the overflow
+        // TODO: Use actual logging once integrated
 
-    // Log the overflow
-    // TODO: Use actual logging once integrated
+        // Route to ERROR if Critical or Furnace priority overflows
+        bool shouldRouteToError = (aPriority == EventPriority::Critical || aPriority == EventPriority::Furnace);
 
-    // Route to ERROR if Critical or Furnace priority overflows
-    bool shouldRouteToError = (aPriority == EventPriority::Critical || aPriority == EventPriority::Furnace);
+        return shouldRouteToError;
+    }
+} // namespace FSM
 
-    return shouldRouteToError;
-}
-
-}  // namespace FSM
-}  // namespace HeatTreatFurnace

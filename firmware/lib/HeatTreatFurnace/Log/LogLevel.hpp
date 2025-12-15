@@ -1,17 +1,11 @@
-//
-// Created by chris on 12/7/25.
-//
-
 #ifndef TEST_APP_LOGLEVEL_HPP
 #define TEST_APP_LOGLEVEL_HPP
-#include <cstdint>
 
 #include "etl/map.h"
 #include "etl/string.h"
 
 namespace HeatTreatFurnace::Log
 {
-
     enum class LogLevel: std::uint16_t
     {
         None, // No logging
@@ -39,7 +33,6 @@ namespace HeatTreatFurnace::Log
     {
         return logLevelStrings.at(aLogLevel);
     }
-
 }
 
 #endif //TEST_APP_LOGLEVEL_HPP

@@ -2,10 +2,6 @@
 #define CONSOLE_LOG_BACKEND_HPP
 
 #include "LogBackend.hpp"
-#include <iostream>
-#include <map>
-#include <string>
-#include <set>
 
 namespace HeatTreatFurnace::Log
 {

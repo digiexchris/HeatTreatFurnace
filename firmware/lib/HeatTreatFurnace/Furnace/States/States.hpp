@@ -4,13 +4,13 @@
 
 #ifndef TEST_APP_STATES_HPP
 #define TEST_APP_STATES_HPP
-#include "FSM/States/CancelledState.hpp"
-#include "FSM/States/CompletedState.hpp"
-#include "FSM/States/ErrorState.hpp"
-#include "FSM/States/IdleState.hpp"
-#include "FSM/States/LoadedState.hpp"
-#include "FSM/States/ManualTempState.hpp"
-#include "FSM/States/PausedState.hpp"
-#include "FSM/States/ProfileTempOverrideState.hpp"
-#include "FSM/States/RunningState.hpp"
+#include "Furnace/States/CancelledState.hpp"
+#include "Furnace/States/CompletedState.hpp"
+#include "Furnace/States/ErrorState.hpp"
+#include "Furnace/States/IdleState.hpp"
+#include "Furnace/States/LoadedState.hpp"
+#include "Furnace/States/ManualTempState.hpp"
+#include "Furnace/States/PausedState.hpp"
+#include "Furnace/States/ProfileTempOverrideState.hpp"
+#include "Furnace/States/RunningState.hpp"
 #endif //TEST_APP_STATES_HPP

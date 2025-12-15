@@ -6,13 +6,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 
+#FetchContent_Declare(
+#        Catch2
+#        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+#        GIT_TAG v3.8.1 # or a later release
+#)
+
+#FetchContent_MakeAvailable(Catch2)
+
+include(FetchContent)
 FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.8.1 # or a later release
+        DocTest
+        GIT_REPOSITORY "https://github.com/doctest/doctest"
+        GIT_TAG "1da23a3e8119ec5cce4f9388e91b065e20bf06f5"
 )
 
-FetchContent_MakeAvailable(Catch2)
+FetchContent_MakeAvailable(DocTest)
 
 FetchContent_Declare(
         trompeloeil
@@ -24,10 +33,10 @@ FetchContent_MakeAvailable(trompeloeil)
 project(test_app)
 
 add_subdirectory(../lib/HeatTreatFurnace HeatTreatFurnace)
-#find_library(Log REQUIRED)
+#add_subdirectory(lib/doctest-2.4.12 doctest)
 
 add_executable(test_app
-    main/test_StateMachine.cpp
+        main/test.cpp
     main/FSM/test_CancelledState.cpp
     main/FSM/test_CompletedState.cpp
     main/FSM/test_ErrorState.cpp
@@ -41,7 +50,7 @@ add_executable(test_app
 
 target_link_libraries(test_app
         HeatTreatFurnace
-        Catch2::Catch2WithMain
+        doctest::doctest
         trompeloeil::trompeloeil
 )
 

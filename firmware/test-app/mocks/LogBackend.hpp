@@ -1,6 +1,7 @@
 #pragma once
 
-#include <catch2/trompeloeil.hpp>
+#include <doctest/doctest.h>
+#include <doctest/trompeloeil.hpp>
 #include "Log/LogBackend.hpp"
 #include "Log/LogLevel.hpp"
 using namespace HeatTreatFurnace::Log;

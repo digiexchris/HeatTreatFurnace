@@ -1,14 +1,16 @@
 #include "ConsoleLogBackend.hpp"
+
+#include <iostream>
+
 #include "LogBackend.hpp"
-#include "../FSM/StateId.hpp"
 
 namespace HeatTreatFurnace::Log
 {
     void ConsoleLogBackend::WriteLog(LogLevel aLevel, etl::string_view aDomain, etl::string_view aMessage)
     {
         std::ostream& stream = (myUseStderrForErrors && (aLevel == LogLevel::Error || aLevel == LogLevel::Warn))
-            ? std::cerr
-            : std::cout;
+                                   ? std::cerr
+                                   : std::cout;
 
         stream << "[" << ToString(aLevel) << "] [" << aDomain << "] " << aMessage << "\n";
     }

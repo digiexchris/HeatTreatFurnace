@@ -10,25 +10,24 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #        GIT_TAG e69e5f977d458f2650bb346dadf2ad30c5320281) # 10.2.1
 #FetchContent_MakeAvailable(fmt)
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../etl-20.44.1 ETLCPP)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../etl-20.44.2 ETLCPP)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../fmt-12.1.0 FMT)
 
 add_library(HeatTreatFurnace
-#        Furnace/StateMachine.cpp
-        FSM/EventQueueManager.cpp
-        FSM/FurnaceFsm.cpp
-        FSM/States/CancelledState.cpp
-        FSM/States/CompletedState.cpp
-        FSM/States/ErrorState.cpp
-        FSM/States/IdleState.cpp
-        FSM/States/LoadedState.cpp
-        FSM/States/ManualTempState.cpp
-        FSM/States/PausedState.cpp
-        FSM/States/ProfileTempOverrideState.cpp
-        FSM/States/RunningState.cpp
-        Furnace/Profile.hpp
-        Furnace/Action.hpp
-        Furnace/Furnace.cpp
-        Furnace/Furnace.hpp
+        Furnace/EventQueueManager.cpp
+        Furnace/FurnaceFsm.cpp
+        Furnace/States/CancelledState.cpp
+        Furnace/States/CompletedState.cpp
+        Furnace/States/ErrorState.cpp
+        Furnace/States/IdleState.cpp
+        Furnace/States/LoadedState.cpp
+        Furnace/States/ManualTempState.cpp
+        Furnace/States/PausedState.cpp
+        Furnace/States/ProfileTempOverrideState.cpp
+        Furnace/States/RunningState.cpp
+        Profile/Profile.hpp
+        Furnace/FurnaceState.cpp
+        Furnace/FurnaceState.hpp
         Log/LogBackend.cpp
         Log/LogBackend.hpp
         Log/LogService.cpp
@@ -37,7 +36,7 @@ add_library(HeatTreatFurnace
         Log/ConsoleLogBackend.hpp
 )
 
-target_link_libraries(HeatTreatFurnace PUBLIC etl::etl)
+target_link_libraries(HeatTreatFurnace PUBLIC etl::etl fmt::fmt-header-only)
 
 set_property(TARGET HeatTreatFurnace PROPERTY CXX_STANDARD 23)
 target_include_directories(HeatTreatFurnace PUBLIC .)

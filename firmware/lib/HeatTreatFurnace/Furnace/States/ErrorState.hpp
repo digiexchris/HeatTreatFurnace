@@ -13,37 +13,36 @@
 
 #include <etl/fsm.h>
 #include <etl/string_view.h>
-#include "FSM/Events.hpp"
+#include "Furnace/Events.hpp"
 #include "StateId.hpp"
 
-namespace HeatTreatFurnace::FSM
+namespace HeatTreatFurnace::Furnace
 {
-class FurnaceFsm;
+    class FurnaceFsm;
 
-/**
- * @brief FSM state representing error condition
- *
- * Handles error reset and recovery, or loading a profile directly.
- * Monitors for additional errors and performs safe shutdown procedures.
- */
-class ErrorState : public etl::fsm_state<FurnaceFsm, ErrorState, STATE_ERROR,
-                                          EvtReset, EvtLoadProfile, EvtError>
-{
-public:
-    etl::fsm_state_id_t on_enter_state() override;
-    void on_exit_state() override;
+    /**
+     * @brief FSM state representing error condition
+     *
+     * Handles error reset and recovery, or loading a profile directly.
+     * Monitors for additional errors and performs safe shutdown procedures.
+     */
+    class ErrorState : public etl::fsm_state<FurnaceFsm, ErrorState, STATE_ERROR,
+                                             EvtReset, EvtLoadProfile, EvtError>
+    {
+    public:
+        etl::fsm_state_id_t on_enter_state() override;
+        void on_exit_state() override;
 
-    etl::fsm_state_id_t on_event(EvtReset const& anEvent);
-    etl::fsm_state_id_t on_event(EvtLoadProfile const& anEvent);
-    etl::fsm_state_id_t on_event(EvtError const& anEvent);
-    etl::fsm_state_id_t on_event_unknown(etl::imessage const& aMsg);
+        etl::fsm_state_id_t on_event(EvtReset const& anEvent);
+        etl::fsm_state_id_t on_event(EvtLoadProfile const& anEvent);
+        etl::fsm_state_id_t on_event(EvtError const& anEvent);
+        etl::fsm_state_id_t on_event_unknown(etl::imessage const& aMsg);
 
-    [[nodiscard]] StateName Name() const;
+        [[nodiscard]] StateName Name() const;
 
-private:
-    static constexpr etl::string_view myDomain = "FSM::Error";
-};
-
+    private:
+        static constexpr etl::string_view myDomain = "FSM::Error";
+    };
 } // namespace HeatTreatFurnace::FSM
 
 #endif // HEATTREATFURNACE_FSM_STATES_ERRORSTATE_HPP

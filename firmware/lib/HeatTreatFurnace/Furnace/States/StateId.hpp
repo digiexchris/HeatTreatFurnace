@@ -1,13 +1,12 @@
 #ifndef HEAT_TREAT_FURNACE_STATE_HPP
 #define HEAT_TREAT_FURNACE_STATE_HPP
 
-#include "../../Furnace/Result.hpp"
 #include "etl/fsm.h"
 #include "etl/string.h"
 
-namespace HeatTreatFurnace::FSM
+namespace HeatTreatFurnace::Furnace
 {
-    constexpr size_t MAX_STATE_ID_NAME_LENGTH = 16;
+    constexpr size_t MAX_STATE_ID_NAME_LENGTH = 24;
 
     using StateName = etl::string<MAX_STATE_ID_NAME_LENGTH>;
 
@@ -34,8 +33,6 @@ namespace HeatTreatFurnace::FSM
     constexpr etl::fsm_state_id_t STATE_ERROR = static_cast<etl::fsm_state_id_t>(StateId::ERROR);
     constexpr etl::fsm_state_id_t STATE_COMPLETED = static_cast<etl::fsm_state_id_t>(StateId::COMPLETED);
     constexpr etl::fsm_state_id_t STATE_CANCELLED = static_cast<etl::fsm_state_id_t>(StateId::CANCELLED);
-
-
 } //namespace fsm
 
 #endif //HEAT_TREAT_FURNACE_STATE_HPP
