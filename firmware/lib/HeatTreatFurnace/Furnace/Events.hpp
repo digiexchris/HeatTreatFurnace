@@ -26,6 +26,9 @@ namespace HeatTreatFurnace::Furnace
         EVENT_ERROR,
         EVENT_RESET,
         EVENT_SET_MANUAL_TEMP,
+        EVENT_SET_HEATER_TARGET,
+        EVENT_SET_HEATER_ON,
+        EVENT_SET_HEATER_OFF,
         EVENT_TICK
     };
 
@@ -106,6 +109,23 @@ namespace HeatTreatFurnace::Furnace
         float targetTemp;
 
         explicit EvtSetManualTemp(float aTargetTemp) : targetTemp(aTargetTemp)
+        {
+        }
+    };
+
+    struct EvtSetHeaterOn : etl::message<EVENT_SET_HEATER_ON>
+    {
+    };
+
+    struct EvtSetHeaterOff : etl::message<EVENT_SET_HEATER_OFF>
+    {
+    };
+
+    struct EvtSetHeaterTarget : etl::message<EVENT_SET_HEATER_TARGET>
+    {
+        float targetTemp;
+
+        explicit EvtSetHeaterTarget(float aTargetTemp) : targetTemp(aTargetTemp)
         {
         }
     };

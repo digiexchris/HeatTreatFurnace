@@ -18,6 +18,8 @@
 
 #include <etl/fsm.h>
 
+//TODO simplify this FSM to just have the main modes: Off, Manual, Profile. Profile sub-states are in the profile fsm. Manual mode can be controlled here, it's simple enough.
+//TODO this should contain a reference to the Heater service, in order to turn it on and off and set the target.
 
 namespace HeatTreatFurnace::Furnace
 {

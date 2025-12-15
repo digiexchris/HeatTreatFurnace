@@ -5,8 +5,11 @@
 #include <string>
 #include <vector>
 
-namespace HeatTreatFurnace::Furnace
+namespace HeatTreatFurnace::Profile
 {
+    constexpr size_t MAX_PROFILE_SEGMENTS = 32;
+    constexpr size_t MAX_PROFILE_NAME_LEN = 64;
+    constexpr size_t MAX_PROFILE_DESC_LEN = 1024;
     /**
      * @brief A segment of the profile, describing how long to get to the target, and how long to hold it
 
@@ -22,8 +25,8 @@ namespace HeatTreatFurnace::Furnace
     class ProfileSegment
     {
         float target = 0.0f;
-        std::chrono::milliseconds rampTime = std::chrono::milliseconds(0);
-        std::chrono::milliseconds dwellTime = std::chrono::milliseconds(0);
+        std::chrono::seconds rampTime = std::chrono::seconds(0);
+        std::chrono::seconds dwellTime = std::chrono::seconds(0);
     };
 
     /**
@@ -31,10 +34,12 @@ namespace HeatTreatFurnace::Furnace
      */
     struct Profile
     {
-        std::string name;
-        std::string description;
-        std::vector<ProfileSegment> segments;
+        etl::string<MAX_PROFILE_NAME_LEN> name;
+        etl::string<MAX_PROFILE_DESC_LEN> description;
+        etl::vector<ProfileSegment, MAX_PROFILE_SEGMENTS> segments;
+        uint16_t currentSegment = 0; //not saved to disk
+        std::chrono::seconds currentSegmentTime = std::chrono::seconds(0); //not saved to disk. the current position within the current segment
     };
-} //HeatTreatFurnace::Furnace
+} //HeatTreatFurnace::Profile
 
 #endif //HEAT_TREAT_FURNACE_PROFILE_HPP
