@@ -16,18 +16,12 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../fmt-12.1.0 FMT)
 add_library(HeatTreatFurnace
         Furnace/EventQueueManager.cpp
         Furnace/FurnaceFsm.cpp
-        Furnace/States/CancelledState.cpp
-        Furnace/States/CompletedState.cpp
-        Furnace/States/ErrorState.cpp
-        Furnace/States/IdleState.cpp
-        Furnace/States/LoadedState.cpp
-        Furnace/States/ManualTempState.cpp
-        Furnace/States/PausedState.cpp
-        Furnace/States/ProfileTempOverrideState.cpp
-        Furnace/States/RunningState.cpp
-        Profile/Profile.hpp
-        Furnace/FurnaceState.cpp
-        Furnace/FurnaceState.hpp
+        Furnace/Profile/ProfileStoppedState.cpp
+        Furnace/Profile/ProfileCompletedState.cpp
+        Furnace/Mode/ErrorState.cpp
+        Furnace/Profile/ProfileLoadedState.cpp
+        Furnace/Mode/ManualState.cpp
+        Furnace/Profile/Profile.hpp
         Log/LogBackend.cpp
         Log/LogBackend.hpp
         Log/LogService.cpp

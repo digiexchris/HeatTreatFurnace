@@ -39,7 +39,7 @@ namespace HeatTreatFurnace::Test
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::IDLE);
         }
 
-        TEST_CASE("ERROR: EvtLoadProfile transitions to LOADED")
+        TEST_CASE("ERROR: EvtProfileLoad transitions to LOADED")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -60,14 +60,14 @@ namespace HeatTreatFurnace::Test
 
             // Then load profile
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Received EvtLoadProfile"))).TIMES(1);
+                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Received EvtProfileLoad"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Exiting ERROR state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile evt(profile);
+            EvtProfileLoad evt(profile);
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 

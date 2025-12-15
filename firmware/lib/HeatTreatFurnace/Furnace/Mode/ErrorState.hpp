@@ -14,7 +14,7 @@
 #include <etl/fsm.h>
 #include <etl/string_view.h>
 #include "Furnace/Events.hpp"
-#include "StateId.hpp"
+#include "Furnace/StateId.hpp"
 
 namespace HeatTreatFurnace::Furnace
 {
@@ -26,22 +26,28 @@ namespace HeatTreatFurnace::Furnace
      * Handles error reset and recovery, or loading a profile directly.
      * Monitors for additional errors and performs safe shutdown procedures.
      */
-    class ErrorState : public etl::fsm_state<FurnaceFsm, ErrorState, STATE_ERROR,
-                                             EvtReset, EvtLoadProfile, EvtError>
+    class ErrorState : public BaseState, public etl::fsm_state
+                       <FurnaceFsm, ErrorState, STATE_ERROR,
+                        EvtModeOff, EvtModeManual, EvtManualSetTemp, EvtModeProfile,
+                        EvtProfileLoad, EvtProfileClear, EvtProfileSetNextSegment, EvtProfileStart, EvtTick, EvtError>
     {
     public:
         etl::fsm_state_id_t on_enter_state() override;
         void on_exit_state() override;
 
-        etl::fsm_state_id_t on_event(EvtReset const& anEvent);
-        etl::fsm_state_id_t on_event(EvtLoadProfile const& anEvent);
+        etl::fsm_state_id_t on_event(EvtModeOff const& anEvent);
+        etl::fsm_state_id_t on_event(EvtModeManual const& anEvent);
+        etl::fsm_state_id_t on_event(EvtManualSetTemp const& anEvent);
+        etl::fsm_state_id_t on_event(EvtModeProfile const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileLoad const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileClear const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileSetNextSegment const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileStart const& anEvent);
+        etl::fsm_state_id_t on_event(EvtTick const& anEvent);
         etl::fsm_state_id_t on_event(EvtError const& anEvent);
         etl::fsm_state_id_t on_event_unknown(etl::imessage const& aMsg);
 
-        [[nodiscard]] StateName Name() const;
-
-    private:
-        static constexpr etl::string_view myDomain = "FSM::Error";
+        [[nodiscard]] StateName Name() const override;
     };
 } // namespace HeatTreatFurnace::FSM
 

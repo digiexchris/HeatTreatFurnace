@@ -22,8 +22,11 @@ namespace HeatTreatFurnace::Furnace
     {
         EventPriority priority; ///< Priority level of the message
         uint32_t seq; ///< Sequence number for FIFO ordering
-        etl::message_packet<EvtLoadProfile, EvtStart, EvtPause, EvtResume, EvtCancel,
-                            EvtComplete, EvtClearProgram, EvtError, EvtReset, EvtSetManualTemp> packet;
+        etl::message_packet
+        <EvtModeOff, EvtModeProfile, EvtModeManual, EvtProfileLoad, EvtProfileAlreadyLoaded,
+         EvtProfileStart, EvtProfileSetNextSegment, EvtProfileStop, EvtProfileClear, EvtManualSetTemp,
+         EvtTick, EvtError
+        > packet;
 
         QueuedMsg() : priority(EventPriority::UI), seq(0U), packet()
         {

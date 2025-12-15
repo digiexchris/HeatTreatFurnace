@@ -4,8 +4,10 @@
 #include <chrono>
 #include <string>
 #include <vector>
+#include <etl/string.h>
+#include <etl/vector.h>
 
-namespace HeatTreatFurnace::Profile
+namespace HeatTreatFurnace::Furnace
 {
     constexpr size_t MAX_PROFILE_SEGMENTS = 32;
     constexpr size_t MAX_PROFILE_NAME_LEN = 64;

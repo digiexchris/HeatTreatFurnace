@@ -7,7 +7,7 @@ namespace HeatTreatFurnace::Test
 {
     TEST_SUITE("IdleState")
     {
-        TEST_CASE("IDLE: EvtLoadProfile transitions to LOADED")
+        TEST_CASE("IDLE: EvtProfileLoad transitions to LOADED")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -20,14 +20,14 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"), etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile evt(profile);
+            EvtProfileLoad evt(profile);
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::LOADED);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
         }
 
-        TEST_CASE("IDLE: EvtSetManualTemp transitions to MANUAL_TEMP")
+        TEST_CASE("IDLE: EvtManualSetTemp transitions to MANUAL_TEMP")
         {
             FsmTestFixture fixture;
             REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
@@ -39,11 +39,11 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"), etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ManualTempState"), etl::string_view("Entered MANUAL_TEMP state"))).TIMES(1);
-            EvtSetManualTemp evt(100.0f);
+            EvtManualSetTemp evt(100.0f);
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL_TEMP);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
         }
 
         TEST_CASE("IDLE: EvtError transitions to ERROR")

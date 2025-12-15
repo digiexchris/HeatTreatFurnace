@@ -1,5 +1,5 @@
 #include "ErrorState.hpp"
-#include "StateId.hpp"
+#include "Furnace/StateId.hpp"
 #include "Furnace/Events.hpp"
 #include "Log/LogService.hpp"
 
@@ -22,34 +22,18 @@ namespace HeatTreatFurnace::Furnace
         get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Exiting ERROR state");
     }
 
-    etl::fsm_state_id_t ErrorState::on_event(EvtReset const& anEvent)
+    etl::fsm_state_id_t ErrorState::on_event(EvtProfileLoad const& anEvent)
     {
         etl::fsm_state_id_t result = No_State_Change;
 
-        get_fsm_context().SendLog(Log::LogLevel::Debug, *this, "Received EvtReset");
-
-        // TODO: Clear error condition and error flags
-        // TODO: Clear program
-        // TODO: Perform any error recovery actions
-
-        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "System reset, returning to IDLE");
-        result = static_cast<etl::fsm_state_id_t>(StateId::IDLE);
-
-        return result;
-    }
-
-    etl::fsm_state_id_t ErrorState::on_event(EvtLoadProfile const& anEvent)
-    {
-        etl::fsm_state_id_t result = No_State_Change;
-
-        get_fsm_context().SendLog(Log::LogLevel::Debug, *this, "Received EvtLoadProfile");
+        get_fsm_context().SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileLoad");
 
         // TODO: Clear error condition
         // TODO: Load new profile
         // Profile is owned by FurnaceState, not FSM
 
-        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Profile loaded, transitioning to LOADED");
-        result = static_cast<etl::fsm_state_id_t>(StateId::LOADED);
+        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Profile loaded, transitioning to PROFILE");
+        result = static_cast<etl::fsm_state_id_t>(StateId::PROFILE);
 
         return result;
     }

@@ -22,19 +22,19 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile loadEvt(profile);
+            EvtProfileLoad loadEvt(profile);
             fixture.fsm.Post(loadEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtStart"))).TIMES(1);
+                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtStart startEvt;
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
@@ -54,7 +54,7 @@ namespace HeatTreatFurnace::Test
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PAUSED);
         }
 
-        TEST_CASE("RUNNING: EvtComplete transitions to COMPLETED")
+        TEST_CASE("RUNNING: EvtProgramComplete transitions to COMPLETED")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -69,39 +69,39 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile loadEvt(profile);
+            EvtProfileLoad loadEvt(profile);
             fixture.fsm.Post(loadEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtStart"))).TIMES(1);
+                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtStart startEvt;
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             // Then complete
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtComplete"))).TIMES(1);
+                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtProgramComplete"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Profile execution completed"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("CompletedState"),etl::string_view("Entered COMPLETED state"))).TIMES(1);
-            EvtComplete evt;
+            EvtProgramComplete evt;
             fixture.fsm.Post(evt, EventPriority::Furnace);
             fixture.fsm.ProcessQueue();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::COMPLETED);
         }
 
-        TEST_CASE("RUNNING: EvtCancel transitions to CANCELLED")
+        TEST_CASE("RUNNING: EvtProfileStop transitions to CANCELLED")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -116,39 +116,39 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile loadEvt(profile);
+            EvtProfileLoad loadEvt(profile);
             fixture.fsm.Post(loadEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtStart"))).TIMES(1);
+                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtStart startEvt;
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             // Then cancel
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtCancel"))).TIMES(1);
+                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtProfileStop"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Cancelling program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("CancelledState"),etl::string_view("Entered CANCELLED state"))).TIMES(1);
-            EvtCancel evt;
+            EvtProfileStop evt;
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::CANCELLED);
         }
 
-        TEST_CASE("RUNNING: EvtSetManualTemp transitions to PROFILE_TEMP_OVERRIDE")
+        TEST_CASE("RUNNING: EvtManualSetTemp transitions to PROFILE_TEMP_OVERRIDE")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -163,19 +163,19 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile loadEvt(profile);
+            EvtProfileLoad loadEvt(profile);
             fixture.fsm.Post(loadEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtStart"))).TIMES(1);
+                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtStart startEvt;
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
@@ -183,14 +183,14 @@ namespace HeatTreatFurnace::Test
 
             // Then set manual temp
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtSetManualTemp, target: 150 C"))).TIMES(1);
+                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtManualSetTemp, target: 150 C"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Transitioning to PROFILE_TEMP_OVERRIDE mode"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ProfileTempOverrideState"),etl::string_view("Entered PROFILE_TEMP_OVERRIDE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
-            EvtSetManualTemp evt(150.0f);
+            EvtManualSetTemp evt(150.0f);
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
@@ -212,19 +212,19 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile loadEvt(profile);
+            EvtProfileLoad loadEvt(profile);
             fixture.fsm.Post(loadEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtStart"))).TIMES(1);
+                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtStart startEvt;
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 

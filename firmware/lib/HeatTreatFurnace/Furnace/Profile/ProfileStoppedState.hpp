@@ -13,9 +13,10 @@
 
 #include <etl/fsm.h>
 #include <etl/string_view.h>
-#include "Furnace/Events.hpp"
-#include "StateId.hpp"
-#include "Log/LogService.hpp"
+
+#include "ProfileState.hpp"
+#include "../Events.hpp"
+#include "../StateId.hpp"
 
 namespace HeatTreatFurnace::Furnace
 {
@@ -27,19 +28,19 @@ namespace HeatTreatFurnace::Furnace
      * Handles clearing program to return to idle state, or loading a new
      * profile. Monitors for error conditions during post-cancellation.
      */
-    class CancelledState : public etl::fsm_state<FurnaceFsm, CancelledState, STATE_CANCELLED,
-                                                 EvtLoadProfile, EvtClearProgram, EvtError>
+    class ProfileStoppedState : public BaseState, public etl::fsm_state<FurnaceFsm, ProfileStoppedState, STATE_PROFILE_STOPPED,
+                                                                        EvtProfileLoad, EvtProfileClear, EvtError>
     {
     public:
         etl::fsm_state_id_t on_enter_state() override;
         void on_exit_state() override;
 
-        etl::fsm_state_id_t on_event(EvtLoadProfile const& anEvent);
-        etl::fsm_state_id_t on_event(EvtClearProgram const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileLoad const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileClear const& anEvent);
         etl::fsm_state_id_t on_event(EvtError const& anEvent);
         etl::fsm_state_id_t on_event_unknown(etl::imessage const& aMsg);
 
-        [[nodiscard]] StateName Name() const;
+        [[nodiscard]] StateName Name() const override;
 
     private:
         static constexpr etl::string_view myDomain = "FSM::Cancelled";

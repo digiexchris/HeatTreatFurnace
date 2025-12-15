@@ -6,7 +6,7 @@ namespace HeatTreatFurnace::Test
 {
     TEST_SUITE("CancelledState")
     {
-        TEST_CASE("CANCELLED: EvtLoadProfile transitions to LOADED")
+        TEST_CASE("CANCELLED: EvtProfileLoad transitions to LOADED")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -22,7 +22,7 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtLoadProfile loadEvt1(profile);
+            EvtProfileLoad loadEvt1(profile);
             fixture.fsm.Post(loadEvt1, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::LOADED);
@@ -33,8 +33,8 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtStart"))).TIMES(1);
-            EvtStart startEvt;
+            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
@@ -44,8 +44,8 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("CancelledState"),etl::string_view("Entered CANCELLED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtCancel"))).TIMES(1);
-            EvtCancel cancelEvt;
+            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtProfileStop"))).TIMES(1);
+            EvtProfileStop cancelEvt;
             fixture.fsm.Post(cancelEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
@@ -56,15 +56,15 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("CancelledState"),etl::string_view("Exiting CANCELLED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_, etl::string_view("CancelledState"),etl::string_view("Received EvtLoadProfile"))).TIMES(1);
-            EvtLoadProfile loadEvt2(profile2);
+            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_, etl::string_view("CancelledState"),etl::string_view("Received EvtProfileLoad"))).TIMES(1);
+            EvtProfileLoad loadEvt2(profile2);
             fixture.fsm.Post(loadEvt2, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::LOADED);
         }
 
-        TEST_CASE("CANCELLED: EvtClearProgram transitions to IDLE")
+        TEST_CASE("CANCELLED: EvtProfileClear transitions to IDLE")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -73,23 +73,23 @@ namespace HeatTreatFurnace::Test
             fixture.Init();
 
             // Transition to CANCELLED
-            EvtLoadProfile loadEvt(profile);
+            EvtProfileLoad loadEvt(profile);
             fixture.fsm.Post(loadEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::LOADED);
 
-            EvtStart startEvt;
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::RUNNING);
 
-            EvtCancel cancelEvt;
+            EvtProfileStop cancelEvt;
             fixture.fsm.Post(cancelEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::CANCELLED);
 
             // Then clear program
-            EvtClearProgram evt;
+            EvtProfileClear evt;
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::IDLE);
@@ -104,17 +104,17 @@ namespace HeatTreatFurnace::Test
             fixture.Init();
 
             // Transition to CANCELLED
-            EvtLoadProfile loadEvt(profile);
+            EvtProfileLoad loadEvt(profile);
             fixture.fsm.Post(loadEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::LOADED);
 
-            EvtStart startEvt;
+            EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::RUNNING);
 
-            EvtCancel cancelEvt;
+            EvtProfileStop cancelEvt;
             fixture.fsm.Post(cancelEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::CANCELLED);

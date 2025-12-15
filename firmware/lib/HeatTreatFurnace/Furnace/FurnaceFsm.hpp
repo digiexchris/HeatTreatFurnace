@@ -2,28 +2,23 @@
 
 #include "EventQueueManager.hpp"
 #include "Types.hpp"
-#include "Furnace/FurnaceState.hpp"
-#include "States/StateId.hpp"
+#include "Furnace/StateId.hpp"
 #include "Log/LogService.hpp"
-
-#include "Furnace/States/CancelledState.hpp"
-#include "Furnace/States/CompletedState.hpp"
-#include "Furnace/States/ErrorState.hpp"
-#include "Furnace/States/IdleState.hpp"
-#include "Furnace/States/LoadedState.hpp"
-#include "Furnace/States/ManualTempState.hpp"
-#include "Furnace/States/PausedState.hpp"
-#include "Furnace/States/ProfileTempOverrideState.hpp"
-#include "Furnace/States/RunningState.hpp"
+#include "Furnace/Mode/OffState.hpp"
+#include "Furnace/Mode/ManualState.hpp"
+#include "Furnace/Mode/ErrorState.hpp"
+#include "Furnace/Profile/Profile.hpp"
+#include "Furnace/Profile/ProfileLoadedState.hpp"
+#include "Furnace/Profile/ProfileRunningState.hpp"
+#include "Furnace/Profile/ProfileStoppedState.hpp"
+#include "Furnace/Profile/ProfileCompletedState.hpp"
 
 #include <etl/fsm.h>
-
-//TODO simplify this FSM to just have the main modes: Off, Manual, Profile. Profile sub-states are in the profile fsm. Manual mode can be controlled here, it's simple enough.
-//TODO this should contain a reference to the Heater service, in order to turn it on and off and set the target.
 
 namespace HeatTreatFurnace::Furnace
 {
     const etl::message_router_id_t FURNACE_FSM_ROUTER = 0;
+
     /**
      * @brief Main FSM class for furnace state management
      *
@@ -34,7 +29,7 @@ namespace HeatTreatFurnace::Furnace
     class FurnaceFsm : public etl::fsm, public Log::Loggable
     {
     public:
-        FurnaceFsm(FurnaceState& aFurnaceState, Log::LogService& aLogger);
+        FurnaceFsm(Log::LogService& aLogger);
 
         /**
          * @brief Overridden receive to queue messages instead of processing immediately
@@ -49,6 +44,7 @@ namespace HeatTreatFurnace::Furnace
          * @param aMsg Event message to post
          * @param aPriority Priority level for the event
          * @return true if posted successfully, false if queue is full
+         * TODO: This needs to drop all events in the queue if it is full and an ERROR comes in.
          */
         bool Post(etl::imessage const& aMsg, EventPriority aPriority);
 
@@ -61,8 +57,8 @@ namespace HeatTreatFurnace::Furnace
          */
         void ProcessQueue();
 
-        template <typename... Args, typename StateType>
-        void SendLog(Log::LogLevel aLevel, StateType& aState, const etl::string_view& aFormat, Args&&... aArgs)
+        template <typename... Args>
+        void SendLog(Log::LogLevel aLevel, BaseState& aState, const etl::string_view& aFormat, Args&&... aArgs)
         {
             myLogService.Log(aLevel, aState.Name(), aFormat, std::forward<Args>(aArgs)...);
         }
@@ -72,12 +68,6 @@ namespace HeatTreatFurnace::Furnace
          * @return Current state identifier (mapped to Furnace::StateId)
          */
         [[nodiscard]] StateId GetCurrentState() const noexcept;
-
-        /**
-         * @brief Get reference to FurnaceState for states to access
-         * @return Reference to furnace operational state
-         */
-        Furnace::FurnaceState& GetFurnaceState() noexcept { return myFurnaceState; }
 
         /**
          * @brief Get reference to LogService for states to access
@@ -92,18 +82,69 @@ namespace HeatTreatFurnace::Furnace
         [[nodiscard]] uint32_t GetOverflowCount() const noexcept;
 
     private:
+        enum class ProfileUpdateResult
+        {
+            START,
+            HOLD,
+            INCREASE,
+            DECREASE,
+            END
+        };
+
+        std::shared_ptr<Profile> GetCurrentProfile() { return myCurrentProfile; }
+
+        ProfileUpdateResult UpdateNextProfileTempTarget();
+        bool ClearProgram();
+        bool SetProgramPosition(int16_t aSegmentIndex, std::chrono::seconds aSegmentTimePosition);
+        bool IsHeaterOn() const;
+        bool SetHeaterOn();
+        bool SetHeaterOff();
+        bool SetHeaterTarget(float aTargetTemp);
+
+        //This changes the next segment and segment position that will be executed by the next UpdateNextProfileTempTarget().
+        bool SetCurrentProfileCurrentSegment(uint16_t aSegment, std::chrono::seconds aSegmentTimePosition);
+
+        void HandleProfileCompleted(ProfileUpdateResult aResult, BaseState& aState)
+        {
+            if (aResult == FurnaceFsm::ProfileUpdateResult::END)
+            {
+                EvtProfileStop evt;
+                Post(evt, EventPriority::Furnace);
+                SendLog(Log::LogLevel::Debug, aState, "Program completed");
+            }
+        }
+
+        etl::fsm_state_id_t HandleEvent(EvtManualSetTemp const& anEvent)
+        {
+            SetHeaterTarget(anEvent.targetTemp);
+            return STATE_MANUAL;
+        }
+
+        etl::fsm_state_id_t HandleEvent(EvtProfileLoad const& anEvent)
+        {
+            //TODO handle the actual loading
+            return STATE_PROFILE_LOADED;
+        }
+
+        std::shared_ptr<Profile> myCurrentProfile;
+
         EventQueueManager myQueueManager;
-        FurnaceState& myFurnaceState;
         Log::LogService& myLogger;
-        etl::fsm_state_pack<IdleState,
-                            LoadedState,
-                            RunningState,
-                            PausedState,
-                            CompletedState,
-                            CancelledState,
+        etl::fsm_state_pack<OffState,
                             ErrorState,
-                            ManualTempState,
-                            ProfileTempOverrideState> myStatePack;
+                            ProfileState,
+                            ProfileLoadedState,
+                            ProfileRunningState,
+                            ProfileCompletedState,
+                            ProfileStoppedState,
+                            ManualState
+        > myStatePack;
+
+        friend class ProfileRunningState;
+        friend class ProfileState;
+        friend class ProfileCompletedState;
+        friend class ProfileLoadedState;
+        friend class ManualState;
     };
 } // namespace HeatTreatFurnace::FSM
 

@@ -1,13 +1,10 @@
 #include "Furnace/FurnaceFsm.hpp"
 
-#include "States/States.hpp"
-
 namespace HeatTreatFurnace::Furnace
 {
-    FurnaceFsm::FurnaceFsm(Furnace::FurnaceState& aFurnaceState, Log::LogService& aLogger)
+    FurnaceFsm::FurnaceFsm(Log::LogService& aLogger)
         : etl::fsm(FURNACE_FSM_ROUTER), Log::Loggable(aLogger), // Router ID 0
           myQueueManager(aLogger),
-          myFurnaceState(aFurnaceState),
           myLogger(aLogger)
     {
     }
