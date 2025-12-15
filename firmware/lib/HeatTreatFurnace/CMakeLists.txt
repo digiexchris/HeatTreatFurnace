@@ -13,7 +13,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../etl-20.44.1 ETLCPP)
 
 add_library(HeatTreatFurnace
-        Furnace/StateMachine.cpp
+#        Furnace/StateMachine.cpp
+        FSM/EventQueueManager.cpp
+        FSM/FurnaceFsm.cpp
+        FSM/States/CancelledState.cpp
+        FSM/States/CompletedState.cpp
+        FSM/States/ErrorState.cpp
+        FSM/States/IdleState.cpp
+        FSM/States/LoadedState.cpp
+        FSM/States/ManualTempState.cpp
+        FSM/States/PausedState.cpp
+        FSM/States/ProfileTempOverrideState.cpp
+        FSM/States/RunningState.cpp
         Furnace/Profile.hpp
         Furnace/Action.hpp
         Furnace/Furnace.cpp

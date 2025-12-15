@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2025 Chris Sutton
 
-#include "EventQueueManager.hpp"
+#include "../FSM/EventQueueManager.hpp"
 #include "../Log/LogService.hpp"
 
 namespace HeatTreatFurnace

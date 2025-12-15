@@ -32,19 +32,28 @@
 
 #pragma once
 
-#include "EventQueueManager.hpp"
-#include "Events.hpp"
-#include "../Furnace/Furnace.hpp"
-#include "../Furnace/State.hpp"
-#include "../Log/LogService.hpp"
+#include "../FSM/EventQueueManager.hpp"
+#include "../FSM/Types.hpp"
+#include "Furnace/Furnace.hpp"
+#include "States/StateId.hpp"
+#include "Log/LogService.hpp"
+
+#include "FSM/States/CancelledState.hpp"
+#include "FSM/States/CompletedState.hpp"
+#include "FSM/States/ErrorState.hpp"
+#include "FSM/States/IdleState.hpp"
+#include "FSM/States/LoadedState.hpp"
+#include "FSM/States/ManualTempState.hpp"
+#include "FSM/States/PausedState.hpp"
+#include "FSM/States/ProfileTempOverrideState.hpp"
+#include "FSM/States/RunningState.hpp"
 
 #include <etl/fsm.h>
 
-namespace HeatTreatFurnace
-{
-namespace FSM
-{
 
+namespace HeatTreatFurnace::FSM
+{
+    const etl::message_router_id_t FURNACE_FSM_ROUTER = 0;
 /**
  * @brief Main FSM class for furnace state management
  *
@@ -52,7 +61,7 @@ namespace FSM
  * Overrides receive() to queue messages, then processes them via
  * etl::fsm::receive() during ProcessQueue().
  */
-class FurnaceFsm : public etl::fsm
+class FurnaceFsm : public etl::fsm, public Log::Loggable
 {
 public:
     FurnaceFsm(Furnace::FurnaceState& aFurnaceState, Log::LogService& aLogger);
@@ -62,6 +71,8 @@ public:
      * @param aMsg Message to queue for later processing
      */
     void receive(etl::imessage const& aMsg) override;
+
+    void Init();
 
     /**
      * @brief Post an event to the queue with specified priority
@@ -80,11 +91,17 @@ public:
      */
     void ProcessQueue();
 
+    template <typename... Args, typename StateType>
+    void SendLog(Log::LogLevel aLevel, StateType& aState, const etl::string_view& aFormat, Args&&... aArgs)
+    {
+        myLogService.Log(aLevel, aState.Name(), aFormat, std::forward<Args>(aArgs)...);
+    }
+
     /**
      * @brief Get the current state ID
      * @return Current state identifier (mapped to Furnace::StateId)
      */
-    Furnace::StateId GetCurrentState() const noexcept;
+    [[nodiscard]] StateId GetCurrentState() const noexcept;
 
     /**
      * @brief Get reference to FurnaceState for states to access
@@ -102,13 +119,24 @@ public:
      * @brief Get the overflow counter from the queue manager
      * @return Number of events dropped due to queue overflow
      */
-    uint32_t GetOverflowCount() const noexcept;
+    [[nodiscard]] uint32_t GetOverflowCount() const noexcept;
+
+    void Initialize();
 
 private:
     EventQueueManager myQueueManager;
     Furnace::FurnaceState& myFurnaceState;
     Log::LogService& myLogger;
+    etl::fsm_state_pack<IdleState,
+                LoadedState,
+                RunningState,
+                PausedState,
+                CompletedState,
+                CancelledState,
+                ErrorState,
+                ManualTempState,
+                ProfileTempOverrideState> myStatePack;
 };
 
-}  // namespace FSM
-}  // namespace HeatTreatFurnace
+} // namespace HeatTreatFurnace::FSM
+

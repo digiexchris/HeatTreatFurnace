@@ -40,19 +40,6 @@ These standards apply to all C++ code in the project, particularly firmware comp
 
 - A brace related to a block should be on its own line
 - New C++ headers and source files should use `.hpp` or `.cpp` as extensions
-- Namespaces should be nested, not collapsed with `::`
-  - Use `namespace Outer { namespace Inner { } }` not `namespace Outer::Inner { }`
-  - End namespace with closing comment indicating which namespace is closing
-  - Example:
-    ```cpp
-    namespace HeatTreatFurnace
-    {
-    namespace FSM
-    {
-    // code here
-    }  // namespace FSM
-    }  // namespace HeatTreatFurnace
-    ```
 
 ### Naming Conventions
 

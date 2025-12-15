@@ -20,23 +20,15 @@
 
 #pragma once
 
-#include "EventQueue.hpp"
 #include "Types.hpp"
+#include "Log/LogService.hpp"
 
-#include <etl/imessage.h>
-
-#include <cstdint>
+#include <etl/message.h>
 #include <mutex>
 
-namespace HeatTreatFurnace
-{
+#include "EventQueue.hpp"
 
-namespace Log
-{
-class LogService;
-}
-
-namespace FSM
+namespace HeatTreatFurnace::FSM
 {
 
 /**
@@ -70,7 +62,7 @@ public:
      * @brief Get the current overflow counter value
      * @return Number of events dropped due to queue overflow
      */
-    uint32_t GetOverflowCount() const noexcept;
+    [[nodiscard]] uint32_t GetOverflowCount() const noexcept;
 
     /**
      * @brief Reset the overflow counter to zero
@@ -106,5 +98,5 @@ void EventQueueManager::DrainQueue(Handler&& aHandler)
     }
 }
 
-}  // namespace FSM
-}  // namespace HeatTreatFurnace
+} // namespace HeatTreatFurnace::FSM
+

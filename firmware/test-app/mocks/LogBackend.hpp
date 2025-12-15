@@ -1,16 +1,19 @@
 #pragma once
 
 #include <catch2/trompeloeil.hpp>
-#include "../../lib/Log/LogBackend.hpp"
+#include "Log/LogBackend.hpp"
+#include "Log/LogLevel.hpp"
+using namespace HeatTreatFurnace::Log;
+class MockLogBackend : public HeatTreatFurnace::Log::LogBackend {
 
-class MockLogBackend : public LogBackend {
 public:
-    MAKE_MOCK3(WriteLog, void(LogLevel, std::string_view, std::string_view), override);
-    
-    MAKE_MOCK2(ShouldLog, bool(LogLevel, std::string_view) const, override);
-    
-    MAKE_MOCK2(SetLevel, void(std::string_view, LogLevel), override);
-    
-    MAKE_MOCK1(GetLevel, LogLevel(std::string_view) const, override);
+    MockLogBackend(LogLevel aMinLogLevel) : LogBackend(aMinLogLevel) {}
+    MAKE_MOCK3(WriteLog, void(LogLevel, etl::string_view, etl::string_view), override);
+
+    MAKE_MOCK1(ShouldLog, bool(LogLevel), const override);
+
+    MAKE_MOCK1(SetMinLevel, void(LogLevel), override);
+
+    MAKE_MOCK0(GetMinLevel, LogLevel(), const override);
 };
 

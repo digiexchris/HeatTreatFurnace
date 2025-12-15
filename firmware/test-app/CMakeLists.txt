@@ -27,7 +27,16 @@ add_subdirectory(../lib/HeatTreatFurnace HeatTreatFurnace)
 #find_library(Log REQUIRED)
 
 add_executable(test_app
-        main/test_StateMachine.cpp
+    main/test_StateMachine.cpp
+    main/FSM/test_CancelledState.cpp
+    main/FSM/test_CompletedState.cpp
+    main/FSM/test_ErrorState.cpp
+    main/FSM/test_IdleState.cpp
+    main/FSM/test_LoadedState.cpp
+    main/FSM/test_ManualTempState.cpp
+    main/FSM/test_PausedState.cpp
+    main/FSM/test_ProfileTempOverrideState.cpp
+    main/FSM/test_RunningState.cpp
 )
 
 target_link_libraries(test_app

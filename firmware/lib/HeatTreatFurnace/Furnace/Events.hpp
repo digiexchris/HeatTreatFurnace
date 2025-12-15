@@ -16,20 +16,17 @@
 
 #pragma once
 
-#include "Types.hpp"
+#include "../FSM/Types.hpp"
 
 #include <etl/message.h>
 #include <etl/string.h>
 
 #include <cstdint>
 
-namespace HeatTreatFurnace
-{
-namespace FSM
-{
+#include "Furnace/Profile.hpp"
 
-class Profile;
-class Temperature;
+namespace HeatTreatFurnace::FSM
+{
 
 /**
  * @brief Event message IDs for ETL message routing
@@ -57,9 +54,9 @@ enum EventId : etl::message_id_t
  */
 struct EvtLoadProfile : public etl::message<EVENT_LOAD_PROFILE>
 {
-    Profile const& profile;
+    Furnace::Profile const& profile;
 
-    explicit EvtLoadProfile(Profile const& aProfile) : profile(aProfile) {}
+    explicit EvtLoadProfile(Furnace::Profile const& aProfile) : profile(aProfile) {}
 };
 
 /// Event to start program execution from LOADED state
@@ -105,13 +102,9 @@ struct EvtReset : public etl::message<EVENT_RESET> {};
  */
 struct EvtSetManualTemp : public etl::message<EVENT_SET_MANUAL_TEMP>
 {
-    Temperature const& temp;
+    float targetTemp;
 
-    explicit EvtSetManualTemp(Temperature const& aTemp) : temp(aTemp) {}
+    explicit EvtSetManualTemp(float aTargetTemp) : targetTemp(aTargetTemp) {}
 };
 
-/// Event for periodic tick/heartbeat to emit current furnace state
-struct EvtTick : public etl::message<EVENT_TICK> {};
-
-}  // namespace FSM
-}  // namespace HeatTreatFurnace
+} // namespace HeatTreatFurnace::FSM

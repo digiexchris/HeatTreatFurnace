@@ -22,23 +22,11 @@
 
 #include <cstdint>
 
-namespace HeatTreatFurnace
-{
-namespace FSM
-{
+#include "FSM/Events.hpp"
+#include "FSM/Types.hpp"
 
-/// Maximum size in bytes for any event message stored in the queue
-constexpr size_t MaxMessageSize = 128U;
-
-/**
- * @brief Priority levels for events (lower enum value = higher priority)
- */
-enum class EventPriority : uint8_t
+namespace HeatTreatFurnace::FSM
 {
-    Critical = 0U,  ///< Highest priority (errors, safety)
-    Furnace = 1U,   ///< Medium priority (control loop, state changes)
-    UI = 2U         ///< Lowest priority (user interface)
-};
 
 /**
  * @brief Wrapper for queued messages with priority and sequence number
@@ -50,7 +38,8 @@ struct QueuedMsg
 {
     EventPriority priority;  ///< Priority level of the message
     uint32_t seq;            ///< Sequence number for FIFO ordering
-    etl::message_packet<MaxMessageSize> packet;  ///< Storage for the event message
+    etl::message_packet<EvtLoadProfile, EvtStart, EvtPause, EvtResume, EvtCancel,
+                    EvtComplete, EvtClearProgram, EvtError, EvtReset, EvtSetManualTemp> packet;
 
     QueuedMsg() : priority(EventPriority::UI), seq(0U), packet() {}
 
@@ -76,11 +65,8 @@ struct MsgCompare
     }
 };
 
-/// Container type for the priority queue (48 total entries)
-using PQContainer = etl::vector<QueuedMsg, 48U>;
-
 /// Priority queue type for storing and ordering events
-using EventPriorityQueue = etl::priority_queue<QueuedMsg, PQContainer, MsgCompare>;
+    using EventPriorityQueue = etl::priority_queue<QueuedMsg, 48U, etl::vector<QueuedMsg, 48U>, MsgCompare>;
 
-}  // namespace FSM
-}  // namespace HeatTreatFurnace
+} // namespace HeatTreatFurnace::FSM
+

@@ -1,6 +1,6 @@
 #include "ConsoleLogBackend.hpp"
 #include "LogBackend.hpp"
-#include "Furnace/State.hpp"
+#include "../FSM/StateId.hpp"
 
 namespace HeatTreatFurnace::Log
 {

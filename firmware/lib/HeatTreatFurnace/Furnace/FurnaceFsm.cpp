@@ -1,19 +1,21 @@
-// SPDX-License-Identifier: MIT
-// Copyright (c) 2025 Chris Sutton
+#include "../FurnaceFsm.hpp"
 
-#include "FurnaceFsm.hpp"
+#include "States/States.hpp"
 
-namespace HeatTreatFurnace
+namespace HeatTreatFurnace::FSM
 {
-namespace FSM
-{
-
-FurnaceFsm::FurnaceFsm(Furnace::FurnaceState& aFurnaceState, Log::LogService& aLogger)
-    : etl::fsm(0),  // Router ID 0
+    FurnaceFsm::FurnaceFsm(Furnace::FurnaceState& aFurnaceState, Log::LogService& aLogger)
+    : etl::fsm(FURNACE_FSM_ROUTER), Log::Loggable(aLogger),  // Router ID 0
       myQueueManager(aLogger),
       myFurnaceState(aFurnaceState),
       myLogger(aLogger)
 {
+}
+
+void FurnaceFsm::Init()
+{
+    set_states(myStatePack);
+    start();
 }
 
 void FurnaceFsm::receive(etl::imessage const& aMsg)
@@ -36,10 +38,10 @@ void FurnaceFsm::ProcessQueue()
     });
 }
 
-Furnace::StateId FurnaceFsm::GetCurrentState() const noexcept
+StateId FurnaceFsm::GetCurrentState() const noexcept
 {
     etl::fsm_state_id_t stateId = get_state_id();
-    return static_cast<Furnace::StateId>(stateId);
+    return static_cast<StateId>(stateId);
 }
 
 uint32_t FurnaceFsm::GetOverflowCount() const noexcept
@@ -47,5 +49,5 @@ uint32_t FurnaceFsm::GetOverflowCount() const noexcept
     return myQueueManager.GetOverflowCount();
 }
 
-}  // namespace FSM
-}  // namespace HeatTreatFurnace
+} // namespace HeatTreatFurnace::FSM
+

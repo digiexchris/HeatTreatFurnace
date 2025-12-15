@@ -19,7 +19,6 @@ This document defines the complete state transition table for the ETL-based queu
 | RUNNING               | `EvtComplete{}`             | COMPLETED                                | Profile complete condition                        | Stop control loop; safe shutdown                         |
 | RUNNING               | `EvtCancel{}`               | CANCELLED                                | —                                                 | Abort program; safe shutdown                             |
 | RUNNING               | `EvtError{...}`             | ERROR                                    | —                                                 | Log error; stop control loop                             |
-| ANY STATE             | `EvtTick{}`                 | no state change                          | —                                                 | emit current furnace state to all observers              |
 | RUNNING               | `EvtSetManualTemp{ temp }`  | PROFILE_TEMP_OVERRIDE                    | `temp` within safety bounds                       | Hold temp at manual set point                            |
 | PAUSED                | `EvtResume{}`               | RUNNING                                  | —                                                 | Resume profile                                           |
 | PAUSED                | `EvtCancel{}`               | CANCELLED                                | —                                                 | Abort program; safe shutdown                             |

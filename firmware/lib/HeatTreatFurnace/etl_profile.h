@@ -47,6 +47,5 @@ SOFTWARE.
 #define ETL_THROW_EXCEPTIONS 0
 
 #define ETL_POLYMORPHIC_CONTAINERS 1
-#define ETL+
 
 #endif

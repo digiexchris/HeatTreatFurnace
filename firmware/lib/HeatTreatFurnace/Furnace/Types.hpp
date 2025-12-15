@@ -13,10 +13,21 @@
 
 #include <cstdint>
 
-namespace HeatTreatFurnace
+namespace HeatTreatFurnace::FSM
 {
-namespace FSM
+
+/// Maximum size in bytes for any event message stored in the queue
+constexpr std::size_t MaxMessageSize = 128U;
+
+/**
+ * @brief Priority levels for events (lower enum value = higher priority)
+ */
+enum class EventPriority : uint8_t
 {
+    Critical = 0U,  ///< Highest priority (errors, safety)
+    Furnace = 1U,   ///< Medium priority (control loop, state changes)
+    UI = 2U         ///< Lowest priority (user interface)
+};
 
 /**
  * @brief Error codes for FSM error handling
@@ -45,5 +56,5 @@ enum class Domain : uint8_t
     StateMachine
 };
 
-}  // namespace FSM
-}  // namespace HeatTreatFurnace
+} // namespace HeatTreatFurnace::FSM
+
