@@ -70,7 +70,7 @@ namespace HeatTreatFurnace::Furnace
         return No_State_Change;
     }
 
-    etl::fsm_state_id_t ProfileState::onEvent(EvtError const& anEvent)
+    etl::fsm_state_id_t ProfileState::on_event(EvtError const& anEvent)
     {
         return STATE_ERROR;
     }

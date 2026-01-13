@@ -45,5 +45,54 @@ namespace HeatTreatFurnace::Furnace
     {
         return myQueueManager.GetOverflowCount();
     }
+
+    bool FurnaceFsm::SetHeaterTarget(float aTargetTemp)
+    {
+        return true;
+    }
+
+    bool FurnaceFsm::IsHeaterOn() const
+    {
+        return false;
+    }
+
+    bool FurnaceFsm::SetHeaterOff()
+    {
+        return false;
+    }
+
+    bool FurnaceFsm::SetHeaterOn()
+    {
+        return false;
+    }
+
+    bool FurnaceFsm::ClearProgram()
+    {
+        return false;
+    }
+
+    FurnaceFsm::ProfileUpdateResult FurnaceFsm::UpdateNextProfileTempTarget()
+    {
+        return FurnaceFsm::ProfileUpdateResult::ERROR;
+    }
+
+    bool FurnaceFsm::SetCurrentProfileCurrentSegment(uint16_t aSegment, std::chrono::seconds aSegmentTimePosition)
+    {
+        if (aSegment > myCurrentProfile->segments.size())
+        {
+            //todo LOG
+            return false;
+        }
+
+        if (aSegmentTimePosition > (myCurrentProfile->segments[aSegment].rampTime + myCurrentProfile->segments[aSegment].dwellTime))
+        {
+            //todo LOG
+            return false;
+        }
+
+        myCurrentProfile->currentSegment = aSegment;
+        myCurrentProfile->currentSegmentTime = aSegmentTimePosition;
+        return true;
+    }
 } // namespace HeatTreatFurnace::FSM
 

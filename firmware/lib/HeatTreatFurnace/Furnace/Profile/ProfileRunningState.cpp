@@ -26,7 +26,7 @@ namespace HeatTreatFurnace::Furnace
             auto res = fsm.UpdateNextProfileTempTarget();
             if (res == FurnaceFsm::ProfileUpdateResult::END)
             {
-                fsm.HandleProfileCompleted(res);
+                fsm.HandleProfileCompleted(res, *this);
             }
             else
             {
@@ -46,6 +46,11 @@ namespace HeatTreatFurnace::Furnace
     etl::fsm_state_id_t ProfileRunningState::on_event(EvtModeOff const& anEvent)
     {
         return STATE_OFF;
+    }
+
+    etl::fsm_state_id_t ProfileRunningState::on_event(EvtModeManual const& anEvent)
+    {
+        return STATE_MANUAL;
     }
 
     etl::fsm_state_id_t ProfileRunningState::on_event(EvtManualSetTemp const& anEvent)
@@ -72,8 +77,14 @@ namespace HeatTreatFurnace::Furnace
     {
         auto& fsm = get_fsm_context();
         auto result = fsm.UpdateNextProfileTempTarget();
-        fsm.HandleProfileCompleted(result);
+        fsm.HandleProfileCompleted(result, *this);
         return No_State_Change;
+    }
+
+    etl::fsm_state_id_t ProfileRunningState::on_event(EvtError const& anEvent)
+    {
+        //unconditionally transition to error
+        return STATE_ERROR;
     }
 
     etl::fsm_state_id_t ProfileRunningState::on_event_unknown(etl::imessage const& aMsg)

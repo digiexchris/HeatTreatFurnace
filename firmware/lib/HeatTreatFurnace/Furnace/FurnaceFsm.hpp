@@ -81,6 +81,8 @@ namespace HeatTreatFurnace::Furnace
          */
         [[nodiscard]] uint32_t GetOverflowCount() const noexcept;
 
+        std::shared_ptr<Profile> GetCurrentProfile() { return myCurrentProfile; }
+
     private:
         enum class ProfileUpdateResult
         {
@@ -88,14 +90,12 @@ namespace HeatTreatFurnace::Furnace
             HOLD,
             INCREASE,
             DECREASE,
-            END
+            END,
+            ERROR
         };
-
-        std::shared_ptr<Profile> GetCurrentProfile() { return myCurrentProfile; }
 
         ProfileUpdateResult UpdateNextProfileTempTarget();
         bool ClearProgram();
-        bool SetProgramPosition(int16_t aSegmentIndex, std::chrono::seconds aSegmentTimePosition);
         bool IsHeaterOn() const;
         bool SetHeaterOn();
         bool SetHeaterOff();
@@ -145,6 +145,7 @@ namespace HeatTreatFurnace::Furnace
         friend class ProfileCompletedState;
         friend class ProfileLoadedState;
         friend class ManualState;
+        friend class OffState;
     };
 } // namespace HeatTreatFurnace::FSM
 

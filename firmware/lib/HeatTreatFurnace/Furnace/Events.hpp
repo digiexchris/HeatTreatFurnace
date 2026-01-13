@@ -23,6 +23,7 @@ namespace HeatTreatFurnace::Furnace
         EVENT_PROFILE_SET_NEXT_SEGMENT, //Sets the next segment to execute, for instance to skip to a point in the program instead of starting at the beginning
         EVENT_PROFILE_STOP,
         EVENT_PROFILE_CLEAR,
+        EVENT_PROFILE_COMPLETE,
         EVENT_MANUAL_SET_TEMP,
         EVENT_TICK,
         EVENT_ERROR
@@ -57,6 +58,10 @@ namespace HeatTreatFurnace::Furnace
         explicit EvtProfileLoad(Profile const& aProfile) : profile(aProfile)
         {
         }
+    };
+
+    struct EvtProfileComplete : public etl::message<EVENT_PROFILE_COMPLETE>
+    {
     };
 
     //Simple transition to Loaded from Profile root state

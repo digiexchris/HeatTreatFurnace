@@ -24,7 +24,7 @@ namespace HeatTreatFurnace::Furnace
     auto span = 1h + 3min + 30s;
      */
 
-    class ProfileSegment
+    struct ProfileSegment
     {
         float target = 0.0f;
         std::chrono::seconds rampTime = std::chrono::seconds(0);
@@ -41,6 +41,7 @@ namespace HeatTreatFurnace::Furnace
         etl::vector<ProfileSegment, MAX_PROFILE_SEGMENTS> segments;
         uint16_t currentSegment = 0; //not saved to disk
         std::chrono::seconds currentSegmentTime = std::chrono::seconds(0); //not saved to disk. the current position within the current segment
+        bool runCompleted = false;
     };
 } //HeatTreatFurnace::Profile
 

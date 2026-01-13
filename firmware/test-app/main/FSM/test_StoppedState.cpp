@@ -4,9 +4,9 @@
 
 namespace HeatTreatFurnace::Test
 {
-    TEST_SUITE("PausedState")
+    TEST_SUITE("StoppedState")
     {
-        TEST_CASE("PAUSED: EvtResume transitions to RUNNING")
+        TEST_CASE("STOPPED: EvtStart transitions to RUNNING when RUNNING profile is stopped and resumed")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -37,6 +37,8 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtPause"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -44,28 +46,30 @@ namespace HeatTreatFurnace::Test
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
-            EvtPause pauseEvt;
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
+            EvtProfileStop pauseEvt;
             fixture.fsm.Post(pauseEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
 
             // Then resume
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Resuming program execution"))).TIMES(1);
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Resuming program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Received EvtResume"))).TIMES(1);
-            EvtResume evt;
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Received EvtResume"))).TIMES(1);
+            EvtProfileStart evt;
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::RUNNING);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
         }
 
-        TEST_CASE("PAUSED: EvtProfileStop transitions to CANCELLED")
+        TEST_CASE("PAUSED: EvtProfileClear transitions to PROFILE")
         {
             FsmTestFixture fixture;
             Profile profile;
@@ -96,6 +100,8 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtPause"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -103,25 +109,27 @@ namespace HeatTreatFurnace::Test
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
-            EvtPause pauseEvt;
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
+            EvtProfileStop pauseEvt;
             fixture.fsm.Post(pauseEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            // Then cancel
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+
+            // Then clear
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Cancelling program execution"))).TIMES(1);
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Cancelling program execution"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("CancelledState"),etl::string_view("Entered CANCELLED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Received EvtProfileStop"))).TIMES(1);
-            EvtProfileStop evt;
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Received EvtProfileStop"))).TIMES(1);
+            EvtProfileClear evt;
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::CANCELLED);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
         }
 
         TEST_CASE("PAUSED: EvtError transitions to ERROR")
@@ -162,16 +170,18 @@ namespace HeatTreatFurnace::Test
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
-            EvtPause pauseEvt;
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
+            EvtProfileStop pauseEvt;
             fixture.fsm.Post(pauseEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+
             // Then error
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Received EvtError: Test error"))).TIMES(1);
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Received EvtError: Test error"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("PausedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
+                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Entered ERROR state"))).TIMES(1);
             EvtError evt(Error::SensorFailure, Domain::Furnace, "Test error");

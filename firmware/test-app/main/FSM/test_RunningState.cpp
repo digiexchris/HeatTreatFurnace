@@ -47,11 +47,11 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("PausedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
-            EvtPause evt;
+            EvtProfileStop evt;
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PAUSED);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
         }
 
         TEST_CASE("RUNNING: EvtProgramComplete transitions to COMPLETED")
@@ -94,11 +94,11 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("CompletedState"),etl::string_view("Entered COMPLETED state"))).TIMES(1);
-            EvtProgramComplete evt;
+            EvtProfileComplete evt;
             fixture.fsm.Post(evt, EventPriority::Furnace);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::COMPLETED);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_COMPLETED);
         }
 
         TEST_CASE("RUNNING: EvtProfileStop transitions to CANCELLED")
@@ -145,7 +145,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::CANCELLED);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
         }
 
         TEST_CASE("RUNNING: EvtManualSetTemp transitions to PROFILE_TEMP_OVERRIDE")
@@ -179,7 +179,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(startEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::RUNNING);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
 
             // Then set manual temp
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -194,7 +194,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_TEMP_OVERRIDE);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
         }
 
         TEST_CASE("RUNNING: EvtError transitions to ERROR")

@@ -1,6 +1,6 @@
 # The following lines of boilerplate have to be in your project's
 # CMakeLists in this exact order for cmake to work correctly
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.28.3)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -17,7 +17,9 @@ add_library(HeatTreatFurnace
         Furnace/EventQueueManager.cpp
         Furnace/FurnaceFsm.cpp
         Furnace/Profile/ProfileStoppedState.cpp
+        Furnace/Profile/ProfileRunningState.cpp
         Furnace/Profile/ProfileCompletedState.cpp
+        Furnace/Profile/ProfileState.cpp
         Furnace/Mode/ErrorState.cpp
         Furnace/Profile/ProfileLoadedState.cpp
         Furnace/Mode/ManualState.cpp
@@ -28,6 +30,7 @@ add_library(HeatTreatFurnace
         Log/LogService.hpp
         Log/ConsoleLogBackend.cpp
         Log/ConsoleLogBackend.hpp
+        Furnace/Mode/OffState.cpp
 )
 
 target_link_libraries(HeatTreatFurnace PUBLIC etl::etl fmt::fmt-header-only)

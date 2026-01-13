@@ -37,7 +37,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::RUNNING);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
         }
 
         TEST_CASE("LOADED: EvtProfileLoad stays in LOADED")
@@ -68,7 +68,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(loadEvt2, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::LOADED);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
         }
 
         TEST_CASE("LOADED: EvtProfileClear transitions to IDLE")
@@ -102,7 +102,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::IDLE);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
         }
 
         TEST_CASE("LOADED: EvtManualSetTemp transitions to MANUAL_TEMP")
@@ -136,7 +136,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL_TEMP);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
         }
 
         TEST_CASE("LOADED: EvtError transitions to ERROR")

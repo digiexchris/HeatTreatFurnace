@@ -13,7 +13,20 @@ namespace HeatTreatFurnace::Test
             REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
             fixture.Init();
 
-            // Transition to MANUAL_TEMP from IDLE
+            //Transition to RUNNING:
+            Profile profile;
+            EvtProfileLoad evtl(profile);
+            fixture.fsm.Post(evtl, EventPriority::UI);
+
+            EvtProfileStart evts;
+            fixture.fsm.Post(evts, EventPriority::UI);
+
+            fixture.fsm.ProcessQueue();
+            fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+
+            // Transition to MANUAL_TEMP from PROFILE_RUNNING
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("IdleState"),_)).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -24,6 +37,8 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(manualEvt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
+
             // Then resume
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Received EvtResume"))).TIMES(1);
@@ -33,11 +48,11 @@ namespace HeatTreatFurnace::Test
                          WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Exiting MANUAL_TEMP state"))).TIMES(1);
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("IdleState"),etl::string_view("Entered IDLE state"))).TIMES(1);
-            EvtResume evt;
+            EvtProfileStart evt;
             fixture.fsm.Post(evt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::IDLE);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
         }
 
         TEST_CASE("MANUAL_TEMP: EvtManualSetTemp stays in MANUAL_TEMP")
@@ -57,7 +72,7 @@ namespace HeatTreatFurnace::Test
             EvtManualSetTemp manualEvt1(100.0f);
             fixture.fsm.Post(manualEvt1, EventPriority::UI);
             fixture.fsm.ProcessQueue();
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL_TEMP);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
 
             // Then update manual temp
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -68,7 +83,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(manualEvt2, EventPriority::UI);
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL_TEMP);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
         }
 
         TEST_CASE("MANUAL_TEMP: EvtError transitions to ERROR")

@@ -6,12 +6,16 @@ namespace HeatTreatFurnace::Furnace
 {
     etl::fsm_state_id_t ManualState::on_enter_state()
     {
+        auto& fsm = get_fsm_context();
+        fsm.SetHeaterOn();
         get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Entered MANUAL_TEMP state");
         return No_State_Change;
     }
 
     void ManualState::on_exit_state()
     {
+        auto& fsm = get_fsm_context();
+        fsm.SetHeaterOff();
         get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Exiting MANUAL_TEMP state");
     }
 
@@ -32,6 +36,18 @@ namespace HeatTreatFurnace::Furnace
 
         fsm.SetHeaterTarget(anEvent.targetTemp);
         return No_State_Change;
+    }
+
+    etl::fsm_state_id_t ManualState::on_event(EvtModeProfile const& anEvent)
+    {
+        return STATE_PROFILE;
+    }
+
+    etl::fsm_state_id_t ManualState::on_event(EvtModeOff const& anEvent)
+    {
+        auto& fsm = get_fsm_context();
+        fsm.SetHeaterOff();
+        return STATE_PROFILE;
     }
 
     etl::fsm_state_id_t ManualState::on_event(EvtError const& anEvent)

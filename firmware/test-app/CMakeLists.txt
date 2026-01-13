@@ -1,6 +1,6 @@
 # The following lines of boilerplate have to be in your project's
 # CMakeLists in this exact order for cmake to work correctly
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.28.3)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -43,8 +43,7 @@ add_executable(test_app
     main/FSM/test_IdleState.cpp
     main/FSM/test_LoadedState.cpp
     main/FSM/test_ManualTempState.cpp
-    main/FSM/test_PausedState.cpp
-    main/FSM/test_ProfileTempOverrideState.cpp
+        main/FSM/test_StoppedState.cpp
     main/FSM/test_RunningState.cpp
 )
 

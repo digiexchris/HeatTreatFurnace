@@ -27,7 +27,7 @@ namespace HeatTreatFurnace::Furnace
         etl::fsm_state_id_t on_event(EvtProfileLoad const& anEvent);
         etl::fsm_state_id_t on_event(EvtManualSetTemp const& anEvent);
         etl::fsm_state_id_t on_event(EvtTick const& anEvent);
-        etl::fsm_state_id_t onEvent(EvtError const& anEvent);
+        etl::fsm_state_id_t on_event(EvtError const& anEvent);
         etl::fsm_state_id_t on_event_unknown(etl::imessage const& aMsg);
 
         [[nodiscard]] StateName Name() const override;
