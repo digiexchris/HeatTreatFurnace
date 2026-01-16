@@ -5,7 +5,7 @@
 #include "Furnace/StateId.hpp"
 #include "Log/LogService.hpp"
 #include "Furnace/Mode/OffState.hpp"
-#include "Furnace/Mode/ManualState.hpp"
+#include "Manual/ManualState.hpp"
 #include "Furnace/Mode/ErrorState.hpp"
 #include "Furnace/Profile/Profile.hpp"
 #include "Furnace/Profile/ProfileLoadedState.hpp"
@@ -31,11 +31,7 @@ namespace HeatTreatFurnace::Furnace
     public:
         FurnaceFsm(Log::LogService& aLogger);
 
-        /**
-         * @brief Overridden receive to queue messages instead of processing immediately
-         * @param aMsg Message to queue for later processing
-         */
-        void receive(etl::imessage const& aMsg) override;
+        ~FurnaceFsm() override = default;
 
         void Init();
 
@@ -44,9 +40,12 @@ namespace HeatTreatFurnace::Furnace
          * @param aMsg Event message to post
          * @param aPriority Priority level for the event
          * @return true if posted successfully, false if queue is full
-         * TODO: This needs to drop all events in the queue if it is full and an ERROR comes in.
          */
-        bool Post(etl::imessage const& aMsg, EventPriority aPriority);
+        template <typename T>
+        bool Post(T const& aMsg)
+        {
+            return myQueueManager.Post(aMsg);
+        }
 
         /**
          * @brief Process all queued events in priority order
@@ -81,7 +80,34 @@ namespace HeatTreatFurnace::Furnace
          */
         [[nodiscard]] uint32_t GetOverflowCount() const noexcept;
 
-        std::shared_ptr<Profile> GetCurrentProfile() { return myCurrentProfile; }
+        void RestartProfile()
+        {
+            myCurrentProfile.currentSegment = 0;
+            myCurrentProfile.currentSegmentTime = std::chrono::seconds(0);
+            myCurrentProfile.runCompleted = false;
+        }
+
+        void ClearProfile()
+        {
+            myCurrentProfile.isValid = false;
+            myCurrentProfile.runCompleted = false;
+        }
+
+        void SetProfileCompleted()
+        {
+            myCurrentProfile.runCompleted = true;
+        }
+
+        Profile GetCurrentProfile() { return myCurrentProfile; }
+
+        bool IsProfileSet() { return myCurrentProfile.isValid; }
+
+        void LoadProfile(Profile& aProfile)
+        {
+            myCurrentProfile = aProfile;
+            myCurrentProfile.isValid = true;
+            myCurrentProfile.runCompleted = false;
+        }
 
     private:
         enum class ProfileUpdateResult
@@ -109,7 +135,7 @@ namespace HeatTreatFurnace::Furnace
             if (aResult == FurnaceFsm::ProfileUpdateResult::END)
             {
                 EvtProfileStop evt;
-                Post(evt, EventPriority::Furnace);
+                Post(evt);
                 SendLog(Log::LogLevel::Debug, aState, "Program completed");
             }
         }
@@ -120,13 +146,7 @@ namespace HeatTreatFurnace::Furnace
             return STATE_MANUAL;
         }
 
-        etl::fsm_state_id_t HandleEvent(EvtProfileLoad const& anEvent)
-        {
-            //TODO handle the actual loading
-            return STATE_PROFILE_LOADED;
-        }
-
-        std::shared_ptr<Profile> myCurrentProfile;
+        Profile myCurrentProfile;
 
         EventQueueManager myQueueManager;
         Log::LogService& myLogger;
@@ -145,7 +165,10 @@ namespace HeatTreatFurnace::Furnace
         friend class ProfileCompletedState;
         friend class ProfileLoadedState;
         friend class ManualState;
+        friend class ManualOnState;
+        friend class ManualOffState;
         friend class OffState;
+        friend class ErrorState;
     };
 } // namespace HeatTreatFurnace::FSM
 

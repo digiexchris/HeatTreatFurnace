@@ -40,11 +40,12 @@ add_executable(test_app
     main/FSM/test_CancelledState.cpp
     main/FSM/test_CompletedState.cpp
     main/FSM/test_ErrorState.cpp
-    main/FSM/test_IdleState.cpp
+        main/FSM/test_ProfileState.cpp
     main/FSM/test_LoadedState.cpp
     main/FSM/test_ManualTempState.cpp
         main/FSM/test_StoppedState.cpp
     main/FSM/test_RunningState.cpp
+        main/FSM/test_Queue.cpp
 )
 
 target_link_libraries(test_app

@@ -18,7 +18,7 @@ namespace HeatTreatFurnace::Furnace
      */
     class ProfileRunningState : public BaseState, public etl::fsm_state
                                 <FurnaceFsm, ProfileRunningState, STATE_PROFILE_RUNNING,
-                                 EvtModeOff, EvtModeManual, EvtManualSetTemp, EvtProfileStop,
+                                 EvtModeOff, EvtModeManual, EvtProfileStop, EvtProfileComplete,
                                  EvtProfileSetNextSegment, EvtTick, EvtError>
     {
     public:
@@ -27,8 +27,8 @@ namespace HeatTreatFurnace::Furnace
 
         etl::fsm_state_id_t on_event(EvtModeOff const& anEvent);
         etl::fsm_state_id_t on_event(EvtModeManual const& anEvent);
-        etl::fsm_state_id_t on_event(EvtManualSetTemp const& anEvent);
         etl::fsm_state_id_t on_event(EvtProfileStop const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileComplete const& anEvent);
         etl::fsm_state_id_t on_event(EvtProfileSetNextSegment const& anEvent);
         etl::fsm_state_id_t on_event(EvtTick const& anEvent);
         etl::fsm_state_id_t on_event(EvtError const& anEvent);

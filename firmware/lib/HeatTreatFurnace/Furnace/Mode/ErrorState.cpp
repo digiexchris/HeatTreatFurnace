@@ -22,20 +22,49 @@ namespace HeatTreatFurnace::Furnace
         get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Exiting ERROR state");
     }
 
-    etl::fsm_state_id_t ErrorState::on_event(EvtProfileLoad const& anEvent)
+    etl::fsm_state_id_t ErrorState::on_event(EvtModeOff const& anEvent)
     {
-        etl::fsm_state_id_t result = No_State_Change;
+        return STATE_OFF;
+    }
 
-        get_fsm_context().SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileLoad");
+    etl::fsm_state_id_t ErrorState::on_event(EvtModeManual const& anEvent)
+    {
+        return STATE_MANUAL;
+    }
 
-        // TODO: Clear error condition
-        // TODO: Load new profile
-        // Profile is owned by FurnaceState, not FSM
+    // etl::fsm_state_id_t ErrorState::on_event(EvtManualSetTemp const& anEvent)
+    // {
+    //     return get_fsm_context().HandleEvent(anEvent);
+    // }
 
-        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Profile loaded, transitioning to PROFILE");
-        result = static_cast<etl::fsm_state_id_t>(StateId::PROFILE);
+    etl::fsm_state_id_t ErrorState::on_event(EvtModeProfile const& anEvent)
+    {
+        return STATE_PROFILE;
+    }
 
-        return result;
+    // etl::fsm_state_id_t ErrorState::on_event(EvtProfileLoad const& anEvent)
+    // {
+    //     auto &fsm = get_fsm_context();
+    //     fsm.SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileLoad");
+    //
+    //     return fsm.HandleEvent(anEvent);
+    // }
+    //
+    // etl::fsm_state_id_t ErrorState::on_event(EvtProfileClear const& anEvent)
+    // {
+    // }
+    //
+    // etl::fsm_state_id_t ErrorState::on_event(EvtProfileSetNextSegment const& anEvent)
+    // {
+    // }
+    //
+    // etl::fsm_state_id_t ErrorState::on_event(EvtProfileStart const& anEvent)
+    // {
+    // }
+
+    etl::fsm_state_id_t ErrorState::on_event(EvtTick const& anEvent)
+    {
+        return No_State_Change;
     }
 
     etl::fsm_state_id_t ErrorState::on_event(EvtError const& anEvent)

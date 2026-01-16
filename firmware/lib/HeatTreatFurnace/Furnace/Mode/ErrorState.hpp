@@ -28,8 +28,8 @@ namespace HeatTreatFurnace::Furnace
      */
     class ErrorState : public BaseState, public etl::fsm_state
                        <FurnaceFsm, ErrorState, STATE_ERROR,
-                        EvtModeOff, EvtModeManual, EvtManualSetTemp, EvtModeProfile,
-                        EvtProfileLoad, EvtProfileClear, EvtProfileSetNextSegment, EvtProfileStart, EvtTick, EvtError>
+                        EvtModeOff, EvtModeManual, EvtModeProfile,
+                        EvtTick, EvtError>
     {
     public:
         etl::fsm_state_id_t on_enter_state() override;
@@ -37,12 +37,7 @@ namespace HeatTreatFurnace::Furnace
 
         etl::fsm_state_id_t on_event(EvtModeOff const& anEvent);
         etl::fsm_state_id_t on_event(EvtModeManual const& anEvent);
-        etl::fsm_state_id_t on_event(EvtManualSetTemp const& anEvent);
         etl::fsm_state_id_t on_event(EvtModeProfile const& anEvent);
-        etl::fsm_state_id_t on_event(EvtProfileLoad const& anEvent);
-        etl::fsm_state_id_t on_event(EvtProfileClear const& anEvent);
-        etl::fsm_state_id_t on_event(EvtProfileSetNextSegment const& anEvent);
-        etl::fsm_state_id_t on_event(EvtProfileStart const& anEvent);
         etl::fsm_state_id_t on_event(EvtTick const& anEvent);
         etl::fsm_state_id_t on_event(EvtError const& anEvent);
         etl::fsm_state_id_t on_event_unknown(etl::imessage const& aMsg);

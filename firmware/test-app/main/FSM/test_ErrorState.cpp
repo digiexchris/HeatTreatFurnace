@@ -6,85 +6,138 @@ namespace HeatTreatFurnace::Test
 {
     TEST_SUITE("ErrorState")
     {
-        TEST_CASE("ERROR: EvtProfileClear transitions to PROFILE")
+        TEST_CASE("ERROR: EvtProfileClear transitions to OFF")
         {
             FsmTestFixture fixture;
 
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
-
-            // Setup loaded state
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Received EvtReset"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("System reset, returning to IDLE"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Exiting ERROR state"))).TIMES(1);
-            Profile profile;
-            EvtProfileLoad evlt(profile);
-            fixture.fsm.Post(evlt, EventPriority::UI);
             fixture.fsm.ProcessQueue();
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
 
             // Transition to ERROR
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),_)).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Entered ERROR state"))).TIMES(1);
             EvtError evtErr(Error::SensorFailure, Domain::Furnace, "Test error");
-            fixture.fsm.Post(evtErr, EventPriority::Critical);
+            fixture.fsm.Post(evtErr);
             fixture.fsm.ProcessQueue();
 
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
+
             // Then reset
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Received EvtReset"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("System reset, returning to IDLE"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Exiting ERROR state"))).TIMES(1);
-            EvtProfileClear evct;
-            fixture.fsm.Post(evct, EventPriority::UI);
+            EvtModeOff evct;
+            fixture.fsm.Post(evct);
             fixture.fsm.ProcessQueue();
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
 
 
         }
 
-        TEST_CASE("ERROR: EvtProfileLoad transitions to LOADED")
+        TEST_CASE("ERROR: EvtProfileLoad transitions to MANUAL")
         {
             FsmTestFixture fixture;
-            Profile profile;
 
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
+            fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
 
             // Transition to ERROR
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Entered ERROR state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),_)).TIMES(1);
-            EvtError errorEvt(Error::SensorFailure, Domain::Furnace, "Test error");
-            fixture.fsm.Post(errorEvt, EventPriority::Critical);
+            EvtError evtErr(Error::SensorFailure, Domain::Furnace, "Test error");
+            fixture.fsm.Post(evtErr);
             fixture.fsm.ProcessQueue();
 
-            // Then load profile
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Received EvtProfileLoad"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Exiting ERROR state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
+
+            // Then reset
+            EvtModeManual evct;
+            fixture.fsm.Post(evct);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
+        }
+
+        TEST_CASE("ERROR: EvtProfileLoad transitions to PROFILE")
+        {
+            FsmTestFixture fixture;
+
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+            fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+
+            // Transition to ERROR
+            EvtError evtErr(Error::SensorFailure, Domain::Furnace, "Test error");
+            fixture.fsm.Post(evtErr);
+            fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
+
+            // Then reset
+            EvtModeProfile evct;
+            fixture.fsm.Post(evct);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+        }
+
+        TEST_CASE("ERROR: EvtProfileLoad transitions to PROFILE_LOADED when profile was already loaded when an error occurred")
+        {
+            FsmTestFixture fixture;
+
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+            fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+            EvtModeProfile evct;
+            fixture.fsm.Post(evct);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+
+            Profile profile;
             EvtProfileLoad evt(profile);
-            fixture.fsm.Post(evt, EventPriority::UI);
+            fixture.fsm.Post(evt);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+
+            // Transition to ERROR
+            EvtError evtErr(Error::SensorFailure, Domain::Furnace, "Test error");
+            fixture.fsm.Post(evtErr);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
+
+            // Then reset
+            EvtModeProfile evtProf;
+            fixture.fsm.Post(evtProf);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+        }
+
+        TEST_CASE("ERROR: EvtProfileLoad transitions to PROFILE when profile was not already loaded when an error occurred")
+        {
+            FsmTestFixture fixture;
+
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
             fixture.fsm.ProcessQueue();
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+            EvtModeProfile evct;
+            fixture.fsm.Post(evct);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+
+            // Transition to ERROR
+            EvtError evtErr(Error::SensorFailure, Domain::Furnace, "Test error");
+            fixture.fsm.Post(evtErr);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
+
+            // Then reset
+            EvtModeProfile evtProf;
+            fixture.fsm.Post(evtProf);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
         }
     }
 } // namespace HeatTreatFurnace::Test

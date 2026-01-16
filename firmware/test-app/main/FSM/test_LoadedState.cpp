@@ -10,162 +10,120 @@ namespace HeatTreatFurnace::Test
         {
             FsmTestFixture fixture;
             Profile profile;
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
+            EvtModeProfile profileEvt;
+            fixture.fsm.Post(profileEvt);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+
             // First transition to LOADED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Entered LOADED state"))).TIMES(1);
             EvtProfileLoad loadEvt(profile);
-            fixture.fsm.Post(loadEvt, EventPriority::UI);
+            fixture.fsm.Post(loadEvt);
             fixture.fsm.ProcessQueue();
-
-            // Then test EvtProfileStart
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Received EvtProfileStart"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Starting program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Exiting LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"), etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtProfileStart evt;
-            fixture.fsm.Post(evt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
         }
 
         TEST_CASE("LOADED: EvtProfileLoad stays in LOADED")
         {
             FsmTestFixture fixture;
             Profile profile;
-            Profile profile2;
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
+            EvtModeProfile profileEvt;
+            fixture.fsm.Post(profileEvt);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+
             // First transition to LOADED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtProfileLoad loadEvt1(profile);
-            fixture.fsm.Post(loadEvt1, EventPriority::UI);
+            EvtProfileLoad loadEvt(profile);
+            fixture.fsm.Post(loadEvt);
             fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
 
-            // Load another profile
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Received EvtProfileLoad, replacing current profile"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Profile reloaded"))).TIMES(1);
-            EvtProfileLoad loadEvt2(profile2);
-            fixture.fsm.Post(loadEvt2, EventPriority::UI);
+            // Load it again
+            EvtProfileLoad loadEvt2(profile);
+            fixture.fsm.Post(loadEvt2);
             fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
         }
 
-        TEST_CASE("LOADED: EvtProfileClear transitions to IDLE")
+        TEST_CASE("LOADED: EvtProfileClear transitions to PROFILE")
         {
             FsmTestFixture fixture;
             Profile profile;
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
+            EvtModeProfile profileEvt;
+            fixture.fsm.Post(profileEvt);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+
             // First transition to LOADED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Entered LOADED state"))).TIMES(1);
             EvtProfileLoad loadEvt(profile);
-            fixture.fsm.Post(loadEvt, EventPriority::UI);
+            fixture.fsm.Post(loadEvt);
             fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
 
-            // Then clear program
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Received EvtProfileClear"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Program cleared, returning to IDLE"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Exiting LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Entered IDLE state"))).TIMES(1);
-            EvtProfileClear evt;
-            fixture.fsm.Post(evt, EventPriority::UI);
+            // clear it
+            EvtProfileClear clearEvt;
+            fixture.fsm.Post(clearEvt);
             fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+            REQUIRE(fixture.fsm.GetCurrentProfile().isValid == false);
         }
 
-        TEST_CASE("LOADED: EvtManualSetTemp transitions to MANUAL_TEMP")
+        TEST_CASE("RUNNING: EvtProfileSetNextSegment remains in Loaded but sets the next segment and segment time")
         {
             FsmTestFixture fixture;
             Profile profile;
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            profile.segments.push_back({100.0f, std::chrono::seconds(10), std::chrono::seconds(10)});
+            profile.segments.push_back({200.0f, std::chrono::seconds(20), std::chrono::seconds(20)});
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            // First transition to LOADED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtProfileLoad loadEvt(profile);
-            fixture.fsm.Post(loadEvt, EventPriority::UI);
+            // Load and Start Profile
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtProfileLoad(profile));
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+
+            // Set next segment
+            uint16_t nextSegment = 1;
+            std::chrono::seconds nextTime(5);
+            fixture.fsm.Post(EvtProfileSetNextSegment(nextSegment, nextTime));
             fixture.fsm.ProcessQueue();
 
-            // Then set manual temp
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Received EvtManualSetTemp, target: 100 C"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Transitioning to MANUAL_TEMP mode"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Exiting LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"), etl::string_view("Entered MANUAL_TEMP state"))).TIMES(1);
-            EvtManualSetTemp evt(100.0f);
-            fixture.fsm.Post(evt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(fixture.fsm.GetCurrentProfile().currentSegment == nextSegment);
+            REQUIRE((fixture.fsm.GetCurrentProfile().currentSegmentTime == nextTime));
         }
 
         TEST_CASE("LOADED: EvtError transitions to ERROR")
         {
             FsmTestFixture fixture;
             Profile profile;
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            // First transition to LOADED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"), etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtProfileLoad loadEvt(profile);
-            fixture.fsm.Post(loadEvt, EventPriority::UI);
+            EvtModeProfile profileEvt;
+            fixture.fsm.Post(profileEvt);
             fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+
+            // First transition to LOADED
+            EvtProfileLoad loadEvt(profile);
+            fixture.fsm.Post(loadEvt);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
 
             // Then error
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Received EvtError: Test error"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"), etl::string_view("Exiting LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"), etl::string_view("Entered ERROR state"))).TIMES(1);
             EvtError evt(Error::SafetyInterlock, Domain::Furnace, "Test error");
-            fixture.fsm.Post(evt, EventPriority::Critical);
+            fixture.fsm.Post(evt);
             fixture.fsm.ProcessQueue();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);

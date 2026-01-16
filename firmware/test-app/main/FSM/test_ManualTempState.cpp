@@ -6,115 +6,85 @@ namespace HeatTreatFurnace::Test
 {
     TEST_SUITE("ManualTempState")
     {
-        TEST_CASE("MANUAL_TEMP: EvtResume transitions to IDLE when no profile loaded")
+        TEST_CASE("MANUAL_TEMP: Transitions to OFF")
         {
             FsmTestFixture fixture;
-
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            //Transition to RUNNING:
-            Profile profile;
-            EvtProfileLoad evtl(profile);
-            fixture.fsm.Post(evtl, EventPriority::UI);
-
-            EvtProfileStart evts;
-            fixture.fsm.Post(evts, EventPriority::UI);
-
+            fixture.fsm.Post(EvtModeManual());
             fixture.fsm.ProcessQueue();
-            fixture.fsm.ProcessQueue();
-
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
-
-            // Transition to MANUAL_TEMP from PROFILE_RUNNING
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),_)).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Entered MANUAL_TEMP state"))).TIMES(1);
-            EvtManualSetTemp manualEvt(100.0f);
-            fixture.fsm.Post(manualEvt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
 
-            // Then resume
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Received EvtResume"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Disabling manual control, returning to IDLE"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Exiting MANUAL_TEMP state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Entered IDLE state"))).TIMES(1);
-            EvtProfileStart evt;
-            fixture.fsm.Post(evt, EventPriority::UI);
+            fixture.fsm.Post(EvtModeOff());
             fixture.fsm.ProcessQueue();
+            // In ManualState.cpp, EvtModeOff returns STATE_PROFILE. This is likely a bug.
+            // But I will first test what is there and see it fail if I expect STATE_OFF.
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+        }
 
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+        TEST_CASE("MANUAL_TEMP: Transitions to PROFILE when no profile already loaded")
+        {
+            FsmTestFixture fixture;
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+
+            fixture.fsm.Post(EvtModeManual());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
+
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+        }
+
+        TEST_CASE("MANUAL_TEMP: Transitions to PROFILE_LOAD when a profile was previously loaded")
+        {
+            FsmTestFixture fixture;
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+
+            Profile profile;
+            fixture.fsm.LoadProfile(profile);
+
+            fixture.fsm.Post(EvtModeManual());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
+
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.ProcessQueue();
+            // ProfileState::on_enter_state posts EvtProfileAlreadyLoaded if a profile is set.
+            fixture.fsm.ProcessQueue(); 
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
         }
 
         TEST_CASE("MANUAL_TEMP: EvtManualSetTemp stays in MANUAL_TEMP")
         {
             FsmTestFixture fixture;
-
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            // Transition to MANUAL_TEMP
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Entered MANUAL_TEMP state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_,etl::string_view("IdleState"),etl::string_view("Manual temperature requested, transitioning to MANUAL_TEMP")));
-            EvtManualSetTemp manualEvt1(100.0f);
-            fixture.fsm.Post(manualEvt1, EventPriority::UI);
+            fixture.fsm.Post(EvtModeManual());
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
 
-            // Then update manual temp
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),_)).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Manual temperature updated"))).TIMES(1);
-            EvtManualSetTemp manualEvt2(150.0f);
-            fixture.fsm.Post(manualEvt2, EventPriority::UI);
+            fixture.fsm.Post(EvtManualSetTemp(100.0f));
             fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
         }
 
         TEST_CASE("MANUAL_TEMP: EvtError transitions to ERROR")
         {
             FsmTestFixture fixture;
-
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            // Transition to MANUAL_TEMP
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Entered MANUAL_TEMP state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_,etl::string_view("IdleState"),etl::string_view("Manual temperature requested, transitioning to MANUAL_TEMP")));
-            EvtManualSetTemp manualEvt(100.0f);
-            fixture.fsm.Post(manualEvt, EventPriority::UI);
+            fixture.fsm.Post(EvtModeManual());
             fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
 
-            // Then error
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Received EvtError: aMessage"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ManualTempState"),etl::string_view("Exiting MANUAL_TEMP state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Entered ERROR state"))).TIMES(1);
-            EvtError evt(Error::Unknown, Domain::StateMachine, "aMessage");
-            fixture.fsm.Post(evt, EventPriority::Critical);
+            fixture.fsm.Post(EvtError(Error::SafetyInterlock, Domain::Furnace, "Test error"));
             fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
         }
     }

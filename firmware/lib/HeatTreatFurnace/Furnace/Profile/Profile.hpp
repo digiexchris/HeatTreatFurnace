@@ -42,6 +42,53 @@ namespace HeatTreatFurnace::Furnace
         uint16_t currentSegment = 0; //not saved to disk
         std::chrono::seconds currentSegmentTime = std::chrono::seconds(0); //not saved to disk. the current position within the current segment
         bool runCompleted = false;
+        bool isValid = false;
+        
+        
+
+        // Copy constructor
+        Profile(const Profile& other)
+            : name(other.name),
+              description(other.description),
+              segments(other.segments),
+              currentSegment(other.currentSegment),
+              currentSegmentTime(other.currentSegmentTime),
+              runCompleted(other.runCompleted),
+              isValid(other.isValid)
+        {
+        }
+
+        // Copy assignment operator
+        Profile& operator=(const Profile& other)
+        {
+            if (this != &other)
+            {
+                name = other.name;
+                description = other.description;
+                segments = other.segments;
+                currentSegment = other.currentSegment;
+                currentSegmentTime = other.currentSegmentTime;
+                runCompleted = other.runCompleted;
+                isValid = other.isValid;
+            }
+            return *this;
+        }
+
+        // Move constructor
+        Profile(Profile&& other) noexcept
+            : name(std::move(other.name)),
+              description(std::move(other.description)),
+              segments(std::move(other.segments)),
+              currentSegment(other.currentSegment),
+              currentSegmentTime(other.currentSegmentTime),
+              runCompleted(other.runCompleted),
+              isValid(other.isValid)
+        {
+        }
+
+
+        Profile() = default;
+        ~Profile() = default;
     };
 } //HeatTreatFurnace::Profile
 

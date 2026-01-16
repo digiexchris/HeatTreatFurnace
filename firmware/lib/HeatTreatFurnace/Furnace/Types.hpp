@@ -25,7 +25,8 @@ namespace HeatTreatFurnace::Furnace
     {
         Critical = 0U, ///< Highest priority (errors, safety)
         Furnace = 1U, ///< Medium priority (control loop, state changes)
-        UI = 2U ///< Lowest priority (user interface)
+        UI = 2U, ///< Lowest priority (user interface)
+        NONE = 4U
     };
 
     /**
@@ -40,7 +41,8 @@ namespace HeatTreatFurnace::Furnace
         SensorFailure,
         ControllerFailure,
         ProfileInvalid,
-        TemperatureOutOfBounds
+        TemperatureOutOfBounds,
+        EventQueueOverflow
     };
 
     /**

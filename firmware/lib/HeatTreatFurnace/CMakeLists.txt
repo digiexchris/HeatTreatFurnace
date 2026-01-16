@@ -22,7 +22,7 @@ add_library(HeatTreatFurnace
         Furnace/Profile/ProfileState.cpp
         Furnace/Mode/ErrorState.cpp
         Furnace/Profile/ProfileLoadedState.cpp
-        Furnace/Mode/ManualState.cpp
+        Furnace/Manual/ManualState.cpp
         Furnace/Profile/Profile.hpp
         Log/LogBackend.cpp
         Log/LogBackend.hpp
@@ -31,6 +31,10 @@ add_library(HeatTreatFurnace
         Log/ConsoleLogBackend.cpp
         Log/ConsoleLogBackend.hpp
         Furnace/Mode/OffState.cpp
+        Furnace/Manual/ManualOnState.cpp
+        Furnace/Manual/ManualOnState.hpp
+        Furnace/Manual/ManualOffState.cpp
+        Furnace/Manual/ManualOffState.hpp
 )
 
 target_link_libraries(HeatTreatFurnace PUBLIC etl::etl fmt::fmt-header-only)

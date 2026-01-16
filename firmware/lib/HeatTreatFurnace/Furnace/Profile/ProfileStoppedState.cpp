@@ -7,23 +7,39 @@ namespace HeatTreatFurnace::Furnace
 {
     etl::fsm_state_id_t ProfileStoppedState::on_enter_state()
     {
-        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Entered CANCELLED state");
+        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Entered STOPPED state");
         return No_State_Change;
     }
 
     void ProfileStoppedState::on_exit_state()
     {
-        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Exiting CANCELLED state");
+        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Exiting STOPPED state");
+    }
+
+    etl::fsm_state_id_t ProfileStoppedState::on_event(EvtModeOff const& anEvent)
+    {
+        return STATE_OFF;
+    }
+
+    etl::fsm_state_id_t ProfileStoppedState::on_event(EvtModeManual const& anEvent)
+    {
+        return STATE_MANUAL;
+    }
+
+    etl::fsm_state_id_t ProfileStoppedState::on_event(EvtProfileStart const& anEvent)
+    {
+        return STATE_PROFILE_RUNNING;
     }
 
     etl::fsm_state_id_t ProfileStoppedState::on_event(EvtProfileLoad const& anEvent)
     {
         etl::fsm_state_id_t result = No_State_Change;
 
-        get_fsm_context().SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileLoad");
+        auto& fsm = get_fsm_context();
+        fsm.SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileLoad");
 
-        // TODO: Load new profile
-        // Profile is owned by FurnaceState, not FSM
+        Profile profile = anEvent.profile;
+        fsm.LoadProfile(profile);
 
         get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Profile loaded, transitioning to PROFILE");
         result = static_cast<etl::fsm_state_id_t>(StateId::PROFILE);
@@ -35,15 +51,13 @@ namespace HeatTreatFurnace::Furnace
     {
         etl::fsm_state_id_t result = No_State_Change;
 
-        get_fsm_context().SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileClear");
+        auto& fsm = get_fsm_context();
+        fsm.SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileClear");
 
-        // TODO: Clear program and cancellation status
-        // TODO: Perform any cleanup
+        fsm.ClearProfile();
 
-        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Program cleared, returning to OFF");
-        result = static_cast<etl::fsm_state_id_t>(StateId::OFF);
-
-        return result;
+        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Program cleared, returning to Profile");
+        return STATE_PROFILE;
     }
 
     etl::fsm_state_id_t ProfileStoppedState::on_event(EvtError const& anEvent)

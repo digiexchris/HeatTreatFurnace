@@ -19,7 +19,8 @@ namespace HeatTreatFurnace::Test
         FsmTestFixture() :
             mockLogBackend(LogLevel::None),
             logger(&mockLogBackend),
-            fsm(logger)
+            fsm(logger),
+            queueManager(logger)
         {
         }
 
@@ -31,6 +32,7 @@ namespace HeatTreatFurnace::Test
         MockLogBackend mockLogBackend;
         LogService logger;
         FurnaceFsm fsm;
+        EventQueueManager queueManager;
 
         template <typename... Args>
         void SendLog(Log::LogLevel aLevel, BaseState& aState, const etl::string_view& aFormat, Args&&... aArgs)

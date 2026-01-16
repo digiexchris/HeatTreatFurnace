@@ -15,11 +15,11 @@ namespace HeatTreatFurnace::Furnace
     {
         FurnaceFsm& fsm = get_fsm_context();
 
-        if (fsm.GetCurrentProfile() == nullptr)
+        if (!fsm.IsProfileSet())
         {
             //Transition immediately to Profile with no loaded profile.
             EvtModeProfile evt;
-            fsm.Post(evt, EventPriority::Furnace);
+            fsm.Post(evt);
         }
         else
         {
@@ -53,11 +53,11 @@ namespace HeatTreatFurnace::Furnace
         return STATE_MANUAL;
     }
 
-    etl::fsm_state_id_t ProfileRunningState::on_event(EvtManualSetTemp const& anEvent)
-    {
-        auto& fsm = get_fsm_context();
-        return fsm.HandleEvent(anEvent);
-    }
+    // etl::fsm_state_id_t ProfileRunningState::on_event(EvtManualSetTemp const& anEvent)
+    // {
+    //     auto& fsm = get_fsm_context();
+    //     return fsm.HandleEvent(anEvent);
+    // }
 
     etl::fsm_state_id_t ProfileRunningState::on_event(EvtProfileStop const& anEvent)
     {
@@ -65,11 +65,17 @@ namespace HeatTreatFurnace::Furnace
         return STATE_PROFILE_STOPPED;
     }
 
+    etl::fsm_state_id_t ProfileRunningState::on_event(EvtProfileComplete const& anEvent)
+    {
+        auto& fsm = get_fsm_context();
+        fsm.SetProfileCompleted();
+        return STATE_PROFILE_COMPLETED;
+    }
+
     etl::fsm_state_id_t ProfileRunningState::on_event(EvtProfileSetNextSegment const& anEvent)
     {
-        //TODO validate the segment
-        //TODO update the myCurrentProgram to the expected segment and time
-        //TODO auto res = fsm.UpdateNextProfileTempTarget();
+        auto& fsm = get_fsm_context();
+        fsm.SetCurrentProfileCurrentSegment(anEvent.segmentIndex, anEvent.segmentTime);
         return No_State_Change;
     }
 
@@ -91,7 +97,7 @@ namespace HeatTreatFurnace::Furnace
     {
         auto& fsm = get_fsm_context();
         fsm.SendLog(Log::LogLevel::Debug, *this, "Unknown event received, stopping profile");
-        return No_State_Change;
+        return STATE_ERROR;
     }
 
     StateName ProfileRunningState::Name() const

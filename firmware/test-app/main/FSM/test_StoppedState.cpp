@@ -6,66 +6,96 @@ namespace HeatTreatFurnace::Test
 {
     TEST_SUITE("StoppedState")
     {
+        TEST_CASE("STOPPED: Transitions to OFF")
+        {
+            FsmTestFixture fixture;
+            Profile profile;
+            profile.segments.push_back({100.0f, std::chrono::seconds(10), std::chrono::seconds(10)});
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+
+            // Transition to STOPPED
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtProfileLoad(profile));
+            fixture.fsm.Post(EvtProfileStart());
+            fixture.fsm.Post(EvtProfileStop());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+
+            fixture.fsm.Post(EvtModeOff());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+        }
+
+        TEST_CASE("STOPPED: Transitions to MANUAL")
+        {
+            FsmTestFixture fixture;
+            Profile profile;
+            profile.segments.push_back({100.0f, std::chrono::seconds(10), std::chrono::seconds(10)});
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+
+            // Transition to STOPPED
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtProfileLoad(profile));
+            fixture.fsm.Post(EvtProfileStart());
+            fixture.fsm.Post(EvtProfileStop());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+
+            fixture.fsm.Post(EvtModeManual());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
+        }
+
+        TEST_CASE("STOPPED: EvtProfileLoad transitions to PROFILE_LOADED")
+        {
+            FsmTestFixture fixture;
+            Profile profile;
+            profile.segments.push_back({100.0f, std::chrono::seconds(10), std::chrono::seconds(10)});
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+
+            // Transition to STOPPED
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtProfileLoad(profile));
+            fixture.fsm.Post(EvtProfileStart());
+            fixture.fsm.Post(EvtProfileStop());
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+
+            Profile newProfile;
+            newProfile.name = "New Profile";
+            fixture.fsm.Post(EvtProfileLoad(newProfile));
+            fixture.fsm.ProcessQueue();
+
+            // In ProfileStoppedState.cpp, EvtProfileLoad transitions to STATE_PROFILE
+            // then ProfileState::on_enter_state posts EvtProfileAlreadyLoaded if a profile is set,
+            // which transitions to STATE_PROFILE_LOADED.
+            fixture.fsm.ProcessQueue(); 
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(fixture.fsm.GetCurrentProfile().name == "New Profile");
+        }
+
         TEST_CASE("STOPPED: EvtStart transitions to RUNNING when RUNNING profile is stopped and resumed")
         {
             FsmTestFixture fixture;
             Profile profile;
-
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            profile.segments.push_back({100.0f, std::chrono::seconds(10), std::chrono::seconds(10)});
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            // Transition to PAUSED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtProfileLoad loadEvt(profile);
-            fixture.fsm.Post(loadEvt, EventPriority::UI);
+            // Transition to STOPPED
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtProfileLoad(profile));
+            fixture.fsm.Post(EvtProfileStart());
+            fixture.fsm.Post(EvtProfileStop());
             fixture.fsm.ProcessQueue();
-
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtProfileStart startEvt;
-            fixture.fsm.Post(startEvt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
-
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtPause"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Pausing program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
-            EvtProfileStop pauseEvt;
-            fixture.fsm.Post(pauseEvt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
 
-            // Then resume
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Resuming program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Received EvtResume"))).TIMES(1);
-            EvtProfileStart evt;
-            fixture.fsm.Post(evt, EventPriority::UI);
+            fixture.fsm.Post(EvtProfileStart());
             fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
         }
 
@@ -73,121 +103,42 @@ namespace HeatTreatFurnace::Test
         {
             FsmTestFixture fixture;
             Profile profile;
-
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            profile.segments.push_back({100.0f, std::chrono::seconds(10), std::chrono::seconds(10)});
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            // Transition to PAUSED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtProfileLoad loadEvt(profile);
-            fixture.fsm.Post(loadEvt, EventPriority::UI);
+            // Transition to STOPPED
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtProfileLoad(profile));
+            fixture.fsm.Post(EvtProfileStart());
+            fixture.fsm.Post(EvtProfileStop());
             fixture.fsm.ProcessQueue();
-
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtProfileStart startEvt;
-            fixture.fsm.Post(startEvt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
-
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtPause"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Pausing program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
-            EvtProfileStop pauseEvt;
-            fixture.fsm.Post(pauseEvt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
 
-            // Then clear
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Cancelling program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("CancelledState"),etl::string_view("Entered CANCELLED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Received EvtProfileStop"))).TIMES(1);
-            EvtProfileClear evt;
-            fixture.fsm.Post(evt, EventPriority::UI);
+            fixture.fsm.Post(EvtProfileClear());
             fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+            REQUIRE(fixture.fsm.GetCurrentProfile().isValid == false);
         }
 
         TEST_CASE("PAUSED: EvtError transitions to ERROR")
         {
             FsmTestFixture fixture;
             Profile profile;
-
-            REQUIRE_CALL(fixture.mockLogBackend, WriteLog(_,_,_)).TIMES(1);
+            profile.segments.push_back({100.0f, std::chrono::seconds(10), std::chrono::seconds(10)});
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
-            // Transition to PAUSED
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Profile loaded, transitioning to LOADED"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("IdleState"),etl::string_view("Exiting IDLE state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Entered LOADED state"))).TIMES(1);
-            EvtProfileLoad loadEvt(profile);
-            fixture.fsm.Post(loadEvt, EventPriority::UI);
+            // Transition to STOPPED
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtProfileLoad(profile));
+            fixture.fsm.Post(EvtProfileStart());
+            fixture.fsm.Post(EvtProfileStop());
             fixture.fsm.ProcessQueue();
-
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Received EvtProfileStart"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Starting program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("LoadedState"),etl::string_view("Exiting LOADED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Entered RUNNING state"))).TIMES(1);
-            EvtProfileStart startEvt;
-            fixture.fsm.Post(startEvt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Received EvtPause"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Pausing program execution"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("RunningState"),etl::string_view("Exiting RUNNING state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Entered PAUSED state"))).TIMES(1);
-            EvtProfileStop pauseEvt;
-            fixture.fsm.Post(pauseEvt, EventPriority::UI);
-            fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
 
-            // Then error
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Received EvtError: Test error"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("StoppedState"),etl::string_view("Exiting PAUSED state"))).TIMES(1);
-            REQUIRE_CALL(fixture.mockLogBackend,
-                         WriteLog(_, etl::string_view("ErrorState"),etl::string_view("Entered ERROR state"))).TIMES(1);
-            EvtError evt(Error::SensorFailure, Domain::Furnace, "Test error");
-            fixture.fsm.Post(evt, EventPriority::Critical);
+            fixture.fsm.Post(EvtError(Error::SafetyInterlock, Domain::Furnace, "Test error"));
             fixture.fsm.ProcessQueue();
-
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
         }
     }

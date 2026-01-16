@@ -46,18 +46,10 @@ namespace HeatTreatFurnace::Furnace
 
         fsm.SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileClear");
 
-        // TODO: Clear the loaded profile
+        fsm.ClearProfile();
 
         fsm.SendLog(Log::LogLevel::Info, *this, "Program cleared, returning to PROFILE");
         return STATE_PROFILE;
-    }
-
-    etl::fsm_state_id_t ProfileLoadedState::on_event(EvtManualSetTemp const& anEvent)
-    {
-        auto& fsm = get_fsm_context();
-        fsm.SendLog(Log::LogLevel::Debug, *this, "Received EvtManualSetTemp, target: {} C", anEvent.targetTemp);
-
-        return fsm.HandleEvent(anEvent);
     }
 
     etl::fsm_state_id_t ProfileLoadedState::on_event(EvtError const& anEvent)
@@ -65,6 +57,13 @@ namespace HeatTreatFurnace::Furnace
         get_fsm_context().SendLog(Log::LogLevel::Error, *this, "Received EvtError: {}", anEvent.msg);
 
         return STATE_ERROR;
+    }
+
+    etl::fsm_state_id_t ProfileLoadedState::on_event(EvtProfileSetNextSegment const& anEvent)
+    {
+        auto& fsm = get_fsm_context();
+        fsm.SetCurrentProfileCurrentSegment(anEvent.segmentIndex, anEvent.segmentTime);
+        return No_State_Change;
     }
 
     etl::fsm_state_id_t ProfileLoadedState::on_event_unknown(etl::imessage const& aMsg)

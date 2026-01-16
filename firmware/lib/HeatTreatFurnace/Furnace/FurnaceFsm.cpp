@@ -15,20 +15,9 @@ namespace HeatTreatFurnace::Furnace
         start();
     }
 
-    void FurnaceFsm::receive(etl::imessage const& aMsg)
-    {
-        // Override receive to queue messages instead of processing immediately
-        myQueueManager.Post(aMsg, EventPriority::Furnace);
-    }
-
-    bool FurnaceFsm::Post(etl::imessage const& aMsg, EventPriority aPriority)
-    {
-        return myQueueManager.Post(aMsg, aPriority);
-    }
-
     void FurnaceFsm::ProcessQueue()
     {
-        myQueueManager.DrainQueue([this](etl::imessage& aMsg)
+        myQueueManager.DrainQueue([this](etl::imessage const& aMsg)
         {
             // Call base class receive to route to state handlers
             etl::fsm::receive(aMsg);
@@ -78,20 +67,20 @@ namespace HeatTreatFurnace::Furnace
 
     bool FurnaceFsm::SetCurrentProfileCurrentSegment(uint16_t aSegment, std::chrono::seconds aSegmentTimePosition)
     {
-        if (aSegment > myCurrentProfile->segments.size())
+        if (aSegment > myCurrentProfile.segments.size())
         {
             //todo LOG
             return false;
         }
 
-        if (aSegmentTimePosition > (myCurrentProfile->segments[aSegment].rampTime + myCurrentProfile->segments[aSegment].dwellTime))
+        if (aSegmentTimePosition > (myCurrentProfile.segments[aSegment].rampTime + myCurrentProfile.segments[aSegment].dwellTime))
         {
             //todo LOG
             return false;
         }
 
-        myCurrentProfile->currentSegment = aSegment;
-        myCurrentProfile->currentSegmentTime = aSegmentTimePosition;
+        myCurrentProfile.currentSegment = aSegment;
+        myCurrentProfile.currentSegmentTime = aSegmentTimePosition;
         return true;
     }
 } // namespace HeatTreatFurnace::FSM

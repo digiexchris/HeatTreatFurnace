@@ -11,8 +11,7 @@ namespace HeatTreatFurnace::Furnace
 
     class ProfileLoadedState : public BaseState, public etl::fsm_state
                                <FurnaceFsm, ProfileLoadedState, STATE_PROFILE_LOADED,
-                                EvtProfileStart, EvtProfileLoad, EvtProfileClear,
-                                EvtManualSetTemp, EvtError>
+                                EvtProfileStart, EvtProfileLoad, EvtProfileClear, EvtProfileSetNextSegment, EvtError>
     {
     public:
         etl::fsm_state_id_t on_enter_state() override;
@@ -20,8 +19,8 @@ namespace HeatTreatFurnace::Furnace
 
         etl::fsm_state_id_t on_event(EvtProfileStart const& anEvent);
         etl::fsm_state_id_t on_event(EvtProfileLoad const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileSetNextSegment const& anEvent);
         etl::fsm_state_id_t on_event(EvtProfileClear const& anEvent);
-        etl::fsm_state_id_t on_event(EvtManualSetTemp const& anEvent);
         etl::fsm_state_id_t on_event(EvtError const& anEvent);
         etl::fsm_state_id_t on_event_unknown(etl::imessage const& aMsg);
 

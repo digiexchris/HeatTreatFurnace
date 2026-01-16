@@ -28,14 +28,57 @@ namespace HeatTreatFurnace::Furnace
          * @param aPriority Priority level for the event
          * @return true if posted successfully, false if queue is full
          */
-        bool Post(etl::imessage const& aMsg, EventPriority aPriority);
+        template <typename T>
+        bool Post(T const& aMsg)
+        {
+
+
+            bool success = false;
+
+            if (!myQueue.full())
+            {
+                std::lock_guard<std::mutex> lock(myMutex);
+                MessagePacket* packet = myEventPool.allocate();
+                new (packet) MessagePacket(aMsg);
+                myQueue.push(packet);
+                success = true;
+            }
+            else
+            {
+                success =  PrivHandleOverflow(aMsg.priority);
+
+
+            }
+
+            return success;
+        }
 
         /**
          * @brief Drain and process all events from the queue in priority order
          * @param aHandler Callback to process each message (typically FSM receive)
          */
         template <typename Handler>
-        void DrainQueue(Handler&& aHandler);
+        void DrainQueue(Handler&& aHandler)
+        {
+            while (!myQueue.empty())
+            {
+                MessagePacket* packet = nullptr;
+                {
+                    std::lock_guard<std::mutex> lock(myMutex);
+                    packet = myQueue.top();
+                }
+
+                assert(packet != nullptr); //TODO: there needs to be a watchdog that reboots if we're stuck on an assert too long
+                aHandler(packet->get());
+
+                {
+                    std::lock_guard<std::mutex> lock(myMutex);
+                    myQueue.pop(); // Heap adjustment now just moves a pointer (SAFE)
+                    myEventPool.release(packet); // Return to pool
+                }
+
+            }
+        }
 
         /**
          * @brief Get the current overflow counter value
@@ -50,6 +93,7 @@ namespace HeatTreatFurnace::Furnace
 
     private:
         EventPriorityQueue myQueue;
+        etl::pool<MessagePacket, 48U> myEventPool; //statically allocated memory for creating events on
         std::mutex myMutex;
         uint32_t mySequence{0U};
         uint32_t myOverflowCount{0U};
@@ -62,19 +106,5 @@ namespace HeatTreatFurnace::Furnace
          */
         bool PrivHandleOverflow(EventPriority aPriority);
     };
-
-    template <typename Handler>
-    void EventQueueManager::DrainQueue(Handler&& aHandler)
-    {
-        std::lock_guard<std::mutex> lock(myMutex);
-
-        while (!myQueue.empty())
-        {
-            QueuedMsg msg = myQueue.top();
-            myQueue.pop();
-
-            aHandler(msg.packet.get());
-        }
-    }
 } // namespace HeatTreatFurnace::FSM
 

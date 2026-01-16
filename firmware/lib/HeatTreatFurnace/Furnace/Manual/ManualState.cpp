@@ -7,8 +7,8 @@ namespace HeatTreatFurnace::Furnace
     etl::fsm_state_id_t ManualState::on_enter_state()
     {
         auto& fsm = get_fsm_context();
-        fsm.SetHeaterOn();
-        get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Entered MANUAL_TEMP state");
+        fsm.SetHeaterOff();
+        fsm.SendLog(Log::LogLevel::Info, *this, "Entered MANUAL_TEMP state");
         return No_State_Change;
     }
 
@@ -19,23 +19,9 @@ namespace HeatTreatFurnace::Furnace
         get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Exiting MANUAL_TEMP state");
     }
 
-    //ie resume stopped or loaded fresh profile
-    etl::fsm_state_id_t ManualState::on_event(EvtProfileStart const& anEvent)
+    etl::fsm_state_id_t ManualState::on_event(EvtManualSetOff const& anEvent)
     {
-        etl::fsm_state_id_t result = No_State_Change;
-
-        get_fsm_context().SendLog(Log::LogLevel::Debug, *this, "Received EvtProfileStart");
-
-        return STATE_PROFILE_RUNNING;
-    }
-
-    etl::fsm_state_id_t ManualState::on_event(EvtManualSetTemp const& anEvent)
-    {
-        auto& fsm = get_fsm_context();
-        fsm.SendLog(Log::LogLevel::Debug, *this, "Received EvtManualSetTemp, new target: {} C", anEvent.targetTemp);
-
-        fsm.SetHeaterTarget(anEvent.targetTemp);
-        return No_State_Change;
+        return STATE_MANUAL_OFF;
     }
 
     etl::fsm_state_id_t ManualState::on_event(EvtModeProfile const& anEvent)
@@ -47,7 +33,7 @@ namespace HeatTreatFurnace::Furnace
     {
         auto& fsm = get_fsm_context();
         fsm.SetHeaterOff();
-        return STATE_PROFILE;
+        return STATE_OFF;
     }
 
     etl::fsm_state_id_t ManualState::on_event(EvtError const& anEvent)

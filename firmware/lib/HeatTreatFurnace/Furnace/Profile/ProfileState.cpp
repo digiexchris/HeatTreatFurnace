@@ -16,12 +16,12 @@ namespace HeatTreatFurnace::Furnace
         {
             fsm.SetHeaterOff();
             EvtError evt(Error::SafetyInterlock, Domain::Furnace, "Entering ProfileState with the heater already on, this should never happen.");
-            fsm.Post(evt, EventPriority::Critical);
+            fsm.Post(evt);
         }
-        if (fsm.GetCurrentProfile() != nullptr)
+        if (fsm.IsProfileSet())
         {
             EvtProfileAlreadyLoaded evt;
-            fsm.Post(evt, EventPriority::Furnace);
+            fsm.Post(evt);
         }
         return No_State_Change;
     }
@@ -30,19 +30,26 @@ namespace HeatTreatFurnace::Furnace
     {
     }
 
-    etl::fsm_state_id_t ProfileState::on_event(EvtProfileLoad const& anEvent)
+    etl::fsm_state_id_t ProfileState::on_event(EvtProfileAlreadyLoaded const& anEvent)
     {
-        //TODO call the handler to load the new program
         return STATE_PROFILE_LOADED;
     }
 
-    etl::fsm_state_id_t ProfileState::on_event(EvtManualSetTemp const& anEvent)
+    etl::fsm_state_id_t ProfileState::on_event(EvtProfileLoad const& anEvent)
     {
         auto& fsm = get_fsm_context();
-        fsm.SetHeaterTarget(anEvent.targetTemp);
-        fsm.SendLog(Log::LogLevel::Debug, *this, "Manual temperature set event received, transitioning to manual mode");
-        return STATE_MANUAL;
+        Profile profile = anEvent.profile;
+        fsm.LoadProfile(profile);
+        return STATE_PROFILE_LOADED;
     }
+
+    // etl::fsm_state_id_t ProfileState::on_event(EvtManualSetTemp const& anEvent)
+    // {
+    //     auto& fsm = get_fsm_context();
+    //     fsm.SetHeaterTarget(anEvent.targetTemp);
+    //     fsm.SendLog(Log::LogLevel::Debug, *this, "Manual temperature set event received, transitioning to manual mode");
+    //     return STATE_MANUAL;
+    // }
 
     //transitions to MANUAL, with the current setpoint set.
     //TODO the current set point will need to be shown in the UI.

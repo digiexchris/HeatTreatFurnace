@@ -20,6 +20,8 @@ namespace HeatTreatFurnace::Furnace
         PROFILE_COMPLETED,
         PROFILE_STOPPED,
         MANUAL,
+        MANUAL_OFF,
+        MANUAL_ON,
         NUM_STATES
     };
 
@@ -31,6 +33,8 @@ namespace HeatTreatFurnace::Furnace
     constexpr etl::fsm_state_id_t STATE_PROFILE_COMPLETED = static_cast<etl::fsm_state_id_t>(StateId::PROFILE_COMPLETED);
     constexpr etl::fsm_state_id_t STATE_PROFILE_STOPPED = static_cast<etl::fsm_state_id_t>(StateId::PROFILE_STOPPED);
     constexpr etl::fsm_state_id_t STATE_MANUAL = static_cast<etl::fsm_state_id_t>(StateId::MANUAL);
+    constexpr etl::fsm_state_id_t STATE_MANUAL_OFF = static_cast<etl::fsm_state_id_t>(StateId::MANUAL_OFF);
+    constexpr etl::fsm_state_id_t STATE_MANUAL_ON = static_cast<etl::fsm_state_id_t>(StateId::MANUAL_ON);
 
     class BaseState
     {

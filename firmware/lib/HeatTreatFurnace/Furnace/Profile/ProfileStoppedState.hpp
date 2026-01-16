@@ -29,12 +29,15 @@ namespace HeatTreatFurnace::Furnace
      * profile. Monitors for error conditions during post-cancellation.
      */
     class ProfileStoppedState : public BaseState, public etl::fsm_state<FurnaceFsm, ProfileStoppedState, STATE_PROFILE_STOPPED,
-                                                                        EvtProfileLoad, EvtProfileClear, EvtError>
+                                                                        EvtModeOff, EvtModeManual, EvtProfileStart, EvtProfileLoad, EvtProfileClear, EvtError>
     {
     public:
         etl::fsm_state_id_t on_enter_state() override;
         void on_exit_state() override;
 
+        etl::fsm_state_id_t on_event(EvtModeOff const& anEvent);
+        etl::fsm_state_id_t on_event(EvtModeManual const& anEvent);
+        etl::fsm_state_id_t on_event(EvtProfileStart const& anEvent);
         etl::fsm_state_id_t on_event(EvtProfileLoad const& anEvent);
         etl::fsm_state_id_t on_event(EvtProfileClear const& anEvent);
         etl::fsm_state_id_t on_event(EvtError const& anEvent);

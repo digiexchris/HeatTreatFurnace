@@ -13,31 +13,6 @@ namespace HeatTreatFurnace::Furnace
     {
     }
 
-    bool EventQueueManager::Post(etl::imessage const& aMsg, EventPriority aPriority)
-    {
-        std::lock_guard<std::mutex> lock(myMutex);
-
-        bool success = false;
-
-        if (!myQueue.full())
-        {
-            QueuedMsg queuedMsg(aPriority, mySequence++, aMsg);
-            myQueue.push(queuedMsg);
-            success = true;
-        }
-        else
-        {
-            bool shouldRouteToError = PrivHandleOverflow(aPriority);
-
-            if (shouldRouteToError)
-            {
-                // TODO: Post EvtError to transition to ERROR state
-            }
-        }
-
-        return success;
-    }
-
     uint32_t EventQueueManager::GetOverflowCount() const noexcept
     {
         return myOverflowCount;
@@ -57,6 +32,11 @@ namespace HeatTreatFurnace::Furnace
 
         // Route to ERROR if Critical or Furnace priority overflows
         bool shouldRouteToError = (aPriority == EventPriority::Critical || aPriority == EventPriority::Furnace);
+        if (shouldRouteToError)
+        {
+            EvtError evt = EvtError(Error::EventQueueOverflow, Domain::Furnace, "EventQueueManager overflowed");
+            Post(evt);
+        }
 
         return shouldRouteToError;
     }
