@@ -1,0 +1,16 @@
+{
+  "name": "Test Program",
+  "description": "A simple test heat treatment program with two segments",
+  "segments": [
+    {
+      "target": 100,
+      "ramp_time": 300,
+      "dwell_time": 60
+    },
+    {
+      "target": 200,
+      "ramp_time": 600,
+      "dwell_time": 120
+    }
+  ]
+}

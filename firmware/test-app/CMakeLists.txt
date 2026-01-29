@@ -30,10 +30,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(trompeloeil)
 
-project(test_app)
+#project(test_app)
 
-add_subdirectory(../lib/HeatTreatFurnace HeatTreatFurnace)
-#add_subdirectory(lib/doctest-2.4.12 doctest)
+# HeatTreatFurnace is added by parent CMakeLists.txt
 
 add_executable(test_app
         main/test.cpp

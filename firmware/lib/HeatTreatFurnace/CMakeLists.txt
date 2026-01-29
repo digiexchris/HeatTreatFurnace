@@ -10,8 +10,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #        GIT_TAG e69e5f977d458f2650bb346dadf2ad30c5320281) # 10.2.1
 #FetchContent_MakeAvailable(fmt)
 
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../etl-20.44.2 ETLCPP)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../fmt-12.1.0 FMT)
+# ETL and FMT are added by parent CMakeLists.txt when building host apps
+# For ESP-IDF builds, these are handled as components
+if(NOT TARGET etl::etl)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../etl-20.44.2 ETLCPP)
+endif()
+if(NOT TARGET fmt::fmt)
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../fmt-12.1.0 FMT)
+endif()
 
 # FlatBuffers include path (header-only library)
 set(FLATBUFFERS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../flatbuffers-23.5.26/include)
