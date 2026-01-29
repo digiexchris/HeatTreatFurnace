@@ -1,4 +1,5 @@
 #include "uWebSocketsTransport.hpp"
+#include <etl/string.h>
 #include <iostream>
 #include <cstring>
 
@@ -7,11 +8,15 @@ namespace Simulator
     uWebSocketsTransport::uWebSocketsTransport(uint16_t aPort)
         : myPort(aPort)
         , myHandler(nullptr)
+        , myAssetProvider(nullptr)
         , myIsRunning(false)
         , myNextClientId(1)
         , myApp(nullptr)
         , myLoop(nullptr)
         , myListenSocket(nullptr)
+        , myTickCallback(nullptr)
+        , myTickUserData(nullptr)
+        , myTickTimer(nullptr)
     {
     }
 
@@ -48,6 +53,12 @@ namespace Simulator
         myHandler = aHandler;
     }
 
+    void uWebSocketsTransport::SetAssetProvider(
+        HeatTreatFurnace::Communication::IWebAssetProvider* aProvider)
+    {
+        myAssetProvider = aProvider;
+    }
+
     bool uWebSocketsTransport::Start()
     {
         if (myIsRunning)
@@ -58,6 +69,40 @@ namespace Simulator
         myLoop = uWS::Loop::get();
         myApp = new uWS::App();
 
+        std::cout << "[Simulator] Asset provider: " << (myAssetProvider != nullptr ? "configured" : "not configured") << std::endl;
+
+        // HTTP routes for serving static web assets
+        if (myAssetProvider != nullptr)
+        {
+            std::cout << "[Simulator] Registering HTTP GET /* route" << std::endl;
+            myApp->get("/*", [this](auto* res, auto* req) {
+                auto urlView = req->getUrl();
+                etl::string<Config::MAX_PATH_LENGTH> url(urlView.data(), urlView.size());
+                
+                std::cout << "[Simulator] HTTP GET " << url.c_str() << std::endl;
+                
+                // Get asset from provider
+                auto asset = myAssetProvider->GetAsset(url.c_str());
+                
+                if (asset.found)
+                {
+                    std::cout << "[Simulator] Serving " << url.c_str() << " (" << asset.size << " bytes, " << asset.mimeType.c_str() << ")" << std::endl;
+                    res->writeHeader("Content-Type", std::string_view(asset.mimeType.data(), asset.mimeType.size()));
+                    res->writeHeader("Cache-Control", "no-cache");
+                    res->end(std::string_view(reinterpret_cast<const char*>(asset.data), asset.size));
+                    myAssetProvider->ReleaseAsset(asset);
+                }
+                else
+                {
+                    std::cout << "[Simulator] 404 Not Found: " << url.c_str() << std::endl;
+                    res->writeStatus("404 Not Found");
+                    res->writeHeader("Content-Type", "text/plain");
+                    res->end("Not Found");
+                }
+            });
+        }
+
+        // WebSocket endpoint
         myApp->ws<PerSocketData>(Config::WS_PATH, {
             .compression = uWS::DISABLED,
             .maxPayloadLength = 16 * 1024,
@@ -141,12 +186,43 @@ namespace Simulator
         std::cout << "[Simulator] WebSocket server stopped" << std::endl;
     }
 
-    void uWebSocketsTransport::Poll()
+    void uWebSocketsTransport::Run()
     {
-        if (myLoop != nullptr && myIsRunning)
+        if (myApp != nullptr && myIsRunning)
         {
-            // Process pending events without blocking
-            myLoop->integrate();
+            // Set up tick timer if callback is registered
+            if (myTickCallback != nullptr)
+            {
+                myTickTimer = us_create_timer(reinterpret_cast<us_loop_t*>(myLoop), 0, sizeof(void*));
+                *reinterpret_cast<uWebSocketsTransport**>(us_timer_ext(myTickTimer)) = this;
+
+                us_timer_set(myTickTimer, [](us_timer_t* timer) {
+                    auto* transport = *reinterpret_cast<uWebSocketsTransport**>(us_timer_ext(timer));
+                    if (transport->myTickCallback != nullptr)
+                    {
+                        transport->myTickCallback(transport->myTickUserData);
+                    }
+                }, Config::TICK_INTERVAL_MS, Config::TICK_INTERVAL_MS);
+            }
+
+            // Run the event loop (blocking)
+            myApp->run();
+        }
+    }
+
+    void uWebSocketsTransport::SetTickCallback(TickCallback aCallback, void* aUserData)
+    {
+        myTickCallback = aCallback;
+        myTickUserData = aUserData;
+    }
+
+    void uWebSocketsTransport::RequestStop()
+    {
+        if (myLoop != nullptr)
+        {
+            myLoop->defer([this]() {
+                Stop();
+            });
         }
     }
 } // namespace Simulator

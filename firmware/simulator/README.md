@@ -1,6 +1,6 @@
 # Furnace Simulator
 
-A C++ simulator for the Heat Treat Furnace that runs on standard Linux x86 systems. It provides a WebSocket server that speaks the same FlatBuffers protocol as the real firmware, allowing frontend development and testing without hardware.
+A C++ simulator for the Heat Treat Furnace that runs on standard Linux x86 systems. It provides both an HTTP server for serving the frontend and a WebSocket server that speaks the same FlatBuffers protocol as the real firmware, allowing frontend development and testing without hardware.
 
 ## Building
 
@@ -31,26 +31,29 @@ make -j$(nproc)
 ./furnace_simulator
 ```
 
-The simulator will start a WebSocket server on port 3000 by default.
+The simulator will start on port 5173 by default, serving:
+- HTTP static files from `frontend/dist/` at `http://localhost:5173/`
+- WebSocket endpoint at `ws://localhost:5173/ws`
 
 ### Command Line Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `-p, --port PORT` | WebSocket server port | 3000 |
+| `-p, --port PORT` | Server port | 5173 |
 | `-d, --programs-dir DIR` | Directory containing program JSON files | programs/ |
+| `-w, --web-root DIR` | Directory containing frontend assets | ../frontend/dist/ |
 | `-h, --help` | Show help message | - |
 
 ### Example
 
 ```bash
-# Run on a different port with custom programs directory
-./furnace_simulator -p 8080 -d /path/to/programs
+# Run on a different port with custom directories
+./furnace_simulator -p 8080 -w /path/to/frontend/dist -d /path/to/programs
 ```
 
 ## Connecting
 
-Connect your frontend to `ws://localhost:3000/ws` (or your configured port). The simulator speaks the same FlatBuffers protocol defined in `proto/furnace.fbs`.
+Open `http://localhost:5173` in your browser (or your configured port). The frontend will automatically connect to the WebSocket endpoint at the same host.
 
 ## Program Files
 
@@ -80,6 +83,14 @@ Programs are stored as JSON files in the `programs/` directory. Format:
 | `segments[].dwell_time` | number | Time to hold at target in seconds |
 
 ## Features
+
+### Frontend Serving
+
+The simulator serves the frontend directly:
+- Serves static files from `frontend/dist/` (or custom `--web-root`)
+- Handles HTML, JS, CSS, PNG, and other common web assets
+- Automatic MIME type detection
+- Path traversal protection
 
 ### Thermal Simulation
 
@@ -113,6 +124,14 @@ Edit `src/SimulatorConfig.hpp` to adjust:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
+│                        Browser                              │
+│                                                             │
+│  GET /* ──────► Static files (HTML, JS, CSS, images)        │
+│  WS /ws ──────► WebSocket (FlatBuffers protocol)            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
 │                     Main Event Loop                         │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
@@ -126,12 +145,21 @@ Edit `src/SimulatorConfig.hpp` to adjust:
 │ uWebSockets     │ │ FurnaceFsm      │ │ ThermalSimulator    │
 │ Transport       │ │ (from lib)      │ │                     │
 │                 │ │                 │ │ - PID Control       │
-│ - Send()        │ │ - State machine │ │ - Heat physics      │
-│ - Broadcast()   │ │ - Event queue   │ │ - Time scaling      │
-└─────────────────┘ └─────────────────┘ └─────────────────────┘
+│ - HTTP GET      │ │ - State machine │ │ - Heat physics      │
+│ - WebSocket     │ │ - Event queue   │ │ - Time scaling      │
+│ - Send/Broadcast│ │                 │ │                     │
+└────────┬────────┘ └─────────────────┘ └─────────────────────┘
          │                  ▲
-         ▼                  │
-┌─────────────────────────────────────────────────────────────┐
+         │                  │
+┌────────▼────────┐         │
+│ Filesystem      │         │
+│ AssetProvider   │         │
+│                 │         │
+│ - Reads files   │         │
+│ - MIME types    │         │
+└─────────────────┘         │
+                            │
+┌───────────────────────────┴─────────────────────────────────┐
 │                  FurnaceMessageHandler                      │
 │                     (from lib)                              │
 │                                                             │

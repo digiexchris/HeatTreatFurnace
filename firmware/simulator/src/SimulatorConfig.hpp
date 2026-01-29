@@ -30,8 +30,17 @@ namespace Simulator::Config
     constexpr float MAX_TIME_SCALE = 100.0f;
     constexpr float DEFAULT_TIME_SCALE = 1.0f;
 
+    // Size limits for ETL containers
+    constexpr size_t MAX_PATH_LENGTH = 256;
+    constexpr size_t MAX_ASSET_SIZE = 1 * 1024 * 1024; // 1MB max for web assets
+    constexpr size_t MAX_PROGRAMS = 32;
+    constexpr size_t MAX_CLIENTS = 8; // Max WebSocket clients
+
     // Program storage
     constexpr const char* PROGRAMS_DIR = "programs/";
     constexpr size_t MAX_PROGRAM_NAME_LENGTH = 64;
+
+    // Web asset serving
+    constexpr const char* DEFAULT_WEB_ROOT = "../../../frontend/dist/";
 }
 

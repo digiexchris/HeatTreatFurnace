@@ -54,6 +54,7 @@ add_executable(furnace_simulator
         src/ThermalSimulator.cpp
         src/SimulatorStateProvider.cpp
         src/SimulatorProfileLoader.cpp
+        src/FilesystemAssetProvider.cpp
 )
 
 target_include_directories(furnace_simulator PRIVATE

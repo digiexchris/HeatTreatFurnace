@@ -2,19 +2,21 @@
 
 #include "Communication/ITransport.hpp"
 #include "Communication/IMessageHandler.hpp"
+#include "Communication/IWebAssetProvider.hpp"
 #include "SimulatorConfig.hpp"
 #include <App.h>
-#include <unordered_map>
+#include <etl/unordered_map.h>
 #include <cstdint>
 #include <atomic>
 
 namespace Simulator
 {
     /**
-     * @brief WebSocket transport implementation using uWebSockets
+     * @brief WebSocket and HTTP transport implementation using uWebSockets
      *
      * Provides WebSocket server functionality for the simulator,
      * managing client connections and routing messages.
+     * Also serves static web assets via HTTP for the frontend.
      */
     class uWebSocketsTransport : public HeatTreatFurnace::Communication::ITransport
     {
@@ -41,6 +43,12 @@ namespace Simulator
         void SetMessageHandler(HeatTreatFurnace::Communication::IMessageHandler* aHandler) override;
 
         /**
+         * @brief Set the web asset provider for serving static files
+         * @param aProvider Pointer to asset provider (null to disable HTTP serving)
+         */
+        void SetAssetProvider(HeatTreatFurnace::Communication::IWebAssetProvider* aProvider);
+
+        /**
          * @brief Start the WebSocket server
          * @return true if server started successfully
          */
@@ -52,11 +60,24 @@ namespace Simulator
         void Stop();
 
         /**
-         * @brief Poll for WebSocket events (non-blocking)
+         * @brief Run the event loop (blocking)
          *
-         * Call this regularly from the main loop to process WebSocket events.
+         * This runs the uWebSockets event loop. Use SetTickCallback to register
+         * periodic work to be done.
          */
-        void Poll();
+        void Run();
+
+        /**
+         * @brief Set callback for periodic tick (called every TICK_INTERVAL_MS)
+         * @param aCallback Function to call on each tick
+         */
+        using TickCallback = void(*)(void* aUserData);
+        void SetTickCallback(TickCallback aCallback, void* aUserData);
+
+        /**
+         * @brief Request the event loop to stop
+         */
+        void RequestStop();
 
         /**
          * @brief Check if server is running
@@ -73,15 +94,21 @@ namespace Simulator
 
         uint16_t myPort;
         HeatTreatFurnace::Communication::IMessageHandler* myHandler;
+        HeatTreatFurnace::Communication::IWebAssetProvider* myAssetProvider;
         std::atomic<bool> myIsRunning;
         uint32_t myNextClientId;
 
         // Map client ID to WebSocket pointer
-        std::unordered_map<uint32_t, WebSocket*> myClients;
+        etl::unordered_map<uint32_t, WebSocket*, Config::MAX_CLIENTS> myClients;
 
         // uWebSockets app and loop
         uWS::App* myApp;
         uWS::Loop* myLoop;
         us_listen_socket_t* myListenSocket;
+
+        // Tick callback
+        TickCallback myTickCallback;
+        void* myTickUserData;
+        struct us_timer_t* myTickTimer;
     };
 } // namespace Simulator

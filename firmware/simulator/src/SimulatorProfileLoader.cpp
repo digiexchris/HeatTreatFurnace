@@ -5,13 +5,13 @@
 
 namespace Simulator
 {
-    SimulatorProfileLoader::SimulatorProfileLoader(const std::string& aProgramsDir)
+    SimulatorProfileLoader::SimulatorProfileLoader(const char* aProgramsDir)
         : myProgramsDir(aProgramsDir)
     {
         // Ensure directory path ends with separator
         if (!myProgramsDir.empty() && myProgramsDir.back() != '/')
         {
-            myProgramsDir += '/';
+            myProgramsDir.append("/");
         }
     }
 
@@ -20,10 +20,12 @@ namespace Simulator
         HeatTreatFurnace::Furnace::Profile& aOutProfile)
     {
         // Build file path
-        std::string filePath = myProgramsDir + std::string(aName.data(), aName.size()) + ".json";
+        etl::string<Config::MAX_PATH_LENGTH> filePath = myProgramsDir;
+        filePath.append(aName.data(), aName.size());
+        filePath.append(".json");
 
         // Try to open file
-        std::ifstream file(filePath);
+        std::ifstream file(filePath.c_str());
         if (!file.is_open())
         {
             return false;
@@ -37,7 +39,7 @@ namespace Simulator
             // Parse name (optional, defaults to filename)
             if (json.contains("name"))
             {
-                std::string name = json["name"].get<std::string>();
+                auto name = json["name"].get<std::string>();
                 aOutProfile.name = name.c_str();
             }
             else
@@ -48,7 +50,7 @@ namespace Simulator
             // Parse description (optional)
             if (json.contains("description"))
             {
-                std::string desc = json["description"].get<std::string>();
+                auto desc = json["description"].get<std::string>();
                 aOutProfile.description = desc.c_str();
             }
 
@@ -110,17 +112,23 @@ namespace Simulator
         }
     }
 
-    std::vector<std::string> SimulatorProfileLoader::ListPrograms() const
+    void SimulatorProfileLoader::ListPrograms(ProgramList& aOutPrograms) const
     {
-        std::vector<std::string> programs;
+        aOutPrograms.clear();
 
         try
         {
-            for (const auto& entry : std::filesystem::directory_iterator(myProgramsDir))
+            for (const auto& entry : std::filesystem::directory_iterator(myProgramsDir.c_str()))
             {
                 if (entry.is_regular_file() && entry.path().extension() == ".json")
                 {
-                    programs.push_back(entry.path().stem().string());
+                    if (aOutPrograms.size() >= Config::MAX_PROGRAMS)
+                    {
+                        break;
+                    }
+                    ProgramName name;
+                    name.assign(entry.path().stem().string().c_str());
+                    aOutPrograms.push_back(name);
                 }
             }
         }
@@ -128,7 +136,5 @@ namespace Simulator
         {
             // Directory doesn't exist or not accessible
         }
-
-        return programs;
     }
 } // namespace Simulator

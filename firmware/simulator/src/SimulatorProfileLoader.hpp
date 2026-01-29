@@ -2,7 +2,8 @@
 
 #include "Communication/IProfileLoader.hpp"
 #include "SimulatorConfig.hpp"
-#include <string>
+#include <etl/string.h>
+#include <etl/vector.h>
 
 namespace Simulator
 {
@@ -23,11 +24,14 @@ namespace Simulator
     class SimulatorProfileLoader : public HeatTreatFurnace::Communication::IProfileLoader
     {
     public:
+        using ProgramName = etl::string<Config::MAX_PROGRAM_NAME_LENGTH>;
+        using ProgramList = etl::vector<ProgramName, Config::MAX_PROGRAMS>;
+
         /**
          * @brief Construct with path to programs directory
          * @param aProgramsDir Path to directory containing program JSON files
          */
-        explicit SimulatorProfileLoader(const std::string& aProgramsDir);
+        explicit SimulatorProfileLoader(const char* aProgramsDir);
 
         ~SimulatorProfileLoader() override = default;
 
@@ -36,11 +40,11 @@ namespace Simulator
 
         /**
          * @brief List available program names
-         * @return Vector of program names (without .json extension)
+         * @param aOutPrograms Vector to populate with program names (without .json extension)
          */
-        std::vector<std::string> ListPrograms() const;
+        void ListPrograms(ProgramList& aOutPrograms) const;
 
     private:
-        std::string myProgramsDir;
+        etl::string<Config::MAX_PATH_LENGTH> myProgramsDir;
     };
 } // namespace Simulator
