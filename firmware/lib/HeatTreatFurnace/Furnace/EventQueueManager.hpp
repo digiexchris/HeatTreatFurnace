@@ -32,7 +32,7 @@ namespace HeatTreatFurnace::Furnace
 
             if (!myQueue.full())
             {
-                std::lock_guard<std::mutex> lock(myMutex);
+                std::lock_guard<std::recursive_mutex> lock(myMutex);
                 MessagePacket* packet = myEventPool.allocate();
                 new(packet) MessagePacket(aMsg);
                 myQueue.push(packet);
@@ -58,7 +58,7 @@ namespace HeatTreatFurnace::Furnace
             {
                 MessagePacket* packet = nullptr;
                 {
-                    std::lock_guard<std::mutex> lock(myMutex);
+                    std::lock_guard<std::recursive_mutex> lock(myMutex);
                     packet = myQueue.front();
                     myQueue.pop();
                 }
@@ -67,7 +67,7 @@ namespace HeatTreatFurnace::Furnace
                 aHandler(packet->get());
 
                 {
-                    std::lock_guard<std::mutex> lock(myMutex);
+                    std::lock_guard<std::recursive_mutex> lock(myMutex);
                     myEventPool.release(packet);
                 }
             }
@@ -81,7 +81,7 @@ namespace HeatTreatFurnace::Furnace
          */
         void Flush()
         {
-            std::lock_guard<std::mutex> lock(myMutex);
+            std::lock_guard<std::recursive_mutex> lock(myMutex);
             while (!myQueue.empty())
             {
                 MessagePacket* packet = myQueue.front();
@@ -104,7 +104,7 @@ namespace HeatTreatFurnace::Furnace
     private:
         EventQueue myQueue;
         etl::pool<MessagePacket, 48U> myEventPool; //statically allocated memory for creating events on
-        std::mutex myMutex;
+        std::recursive_mutex myMutex;
         uint32_t myOverflowCount{0U};
         Log::LogService& myLogger;
 
