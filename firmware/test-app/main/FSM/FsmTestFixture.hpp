@@ -6,6 +6,7 @@
 #include "Log/LogService.hpp"
 #include "../../../lib/HeatTreatFurnace/Furnace/FurnaceFsm.hpp"
 #include "mocks/LogBackend.hpp"
+#include "mocks/HeaterController.hpp"
 
 namespace HeatTreatFurnace::Test
 {
@@ -19,7 +20,7 @@ namespace HeatTreatFurnace::Test
         FsmTestFixture() :
             mockLogBackend(LogLevel::None),
             logger(&mockLogBackend),
-            fsm(logger),
+            fsm(logger, mockHeater),
             queueManager(logger)
         {
         }
@@ -31,6 +32,7 @@ namespace HeatTreatFurnace::Test
 
         MockLogBackend mockLogBackend;
         LogService logger;
+        MockHeaterController mockHeater;
         FurnaceFsm fsm;
         EventQueueManager queueManager;
 

@@ -13,9 +13,9 @@ namespace HeatTreatFurnace::Furnace
 {
     class FurnaceFsm;
 
-    class ManualOnState: public BaseState, public etl::fsm_state
-                     <FurnaceFsm, ManualOnState, STATE_MANUAL_OFF,
-                      EvtModeOff, EvtModeProfile, EvtManualSetTemp, EvtManualSetOff, EvtError>
+    class ManualOnState : public BaseState, public etl::fsm_state
+                          <FurnaceFsm, ManualOnState, STATE_MANUAL_ON,
+                           EvtModeOff, EvtModeProfile, EvtManualSetTemp, EvtManualSetOff, EvtError>
     {
     public:
         etl::fsm_state_id_t on_enter_state() override;

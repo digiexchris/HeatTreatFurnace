@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.28.3)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
+SET(CMAKE_BUILD_TYPE Debug)
 include(FetchContent)
 
 #FetchContent_Declare(
@@ -37,15 +37,17 @@ add_subdirectory(../lib/HeatTreatFurnace HeatTreatFurnace)
 
 add_executable(test_app
         main/test.cpp
-    main/FSM/test_CancelledState.cpp
-    main/FSM/test_CompletedState.cpp
-    main/FSM/test_ErrorState.cpp
+        main/FSM/test_CancelledState.cpp
+        main/FSM/test_CompletedState.cpp
+        main/FSM/test_ErrorState.cpp
         main/FSM/test_ProfileState.cpp
-    main/FSM/test_LoadedState.cpp
-    main/FSM/test_ManualTempState.cpp
+        main/FSM/test_LoadedState.cpp
+        main/FSM/test_ManualTempState.cpp
         main/FSM/test_StoppedState.cpp
-    main/FSM/test_RunningState.cpp
+        main/FSM/test_RunningState.cpp
         main/FSM/test_Queue.cpp
+        main/Pid/test_PidController.cpp
+        main/Heater/test_HeaterController.cpp
 )
 
 target_link_libraries(test_app

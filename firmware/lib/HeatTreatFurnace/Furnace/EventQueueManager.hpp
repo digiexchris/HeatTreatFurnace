@@ -31,23 +31,19 @@ namespace HeatTreatFurnace::Furnace
         template <typename T>
         bool Post(T const& aMsg)
         {
-
-
             bool success = false;
 
             if (!myQueue.full())
             {
                 std::lock_guard<std::mutex> lock(myMutex);
                 MessagePacket* packet = myEventPool.allocate();
-                new (packet) MessagePacket(aMsg);
+                new(packet) MessagePacket(aMsg);
                 myQueue.push(packet);
                 success = true;
             }
             else
             {
-                success =  PrivHandleOverflow(aMsg.priority);
-
-
+                success = PrivHandleOverflow(aMsg.priority);
             }
 
             return success;
@@ -66,6 +62,7 @@ namespace HeatTreatFurnace::Furnace
                 {
                     std::lock_guard<std::mutex> lock(myMutex);
                     packet = myQueue.top();
+                    myQueue.pop();
                 }
 
                 assert(packet != nullptr); //TODO: there needs to be a watchdog that reboots if we're stuck on an assert too long
@@ -73,10 +70,8 @@ namespace HeatTreatFurnace::Furnace
 
                 {
                     std::lock_guard<std::mutex> lock(myMutex);
-                    myQueue.pop(); // Heap adjustment now just moves a pointer (SAFE)
-                    myEventPool.release(packet); // Return to pool
+                    myEventPool.release(packet);
                 }
-
             }
         }
 

@@ -4,8 +4,11 @@
 #include "Types.hpp"
 #include "Furnace/StateId.hpp"
 #include "Log/LogService.hpp"
+#include "Heater/IHeaterController.hpp"
 #include "Furnace/Mode/OffState.hpp"
 #include "Manual/ManualState.hpp"
+#include "Manual/ManualOnState.hpp"
+#include "Manual/ManualOffState.hpp"
 #include "Furnace/Mode/ErrorState.hpp"
 #include "Furnace/Profile/Profile.hpp"
 #include "Furnace/Profile/ProfileLoadedState.hpp"
@@ -29,7 +32,7 @@ namespace HeatTreatFurnace::Furnace
     class FurnaceFsm : public etl::fsm, public Log::Loggable
     {
     public:
-        FurnaceFsm(Log::LogService& aLogger);
+        FurnaceFsm(Log::LogService& aLogger, Heater::IHeaterController& aHeater);
 
         ~FurnaceFsm() override = default;
 
@@ -150,6 +153,7 @@ namespace HeatTreatFurnace::Furnace
 
         EventQueueManager myQueueManager;
         Log::LogService& myLogger;
+        Heater::IHeaterController& myHeater;
         etl::fsm_state_pack<OffState,
                             ErrorState,
                             ProfileState,
@@ -157,7 +161,9 @@ namespace HeatTreatFurnace::Furnace
                             ProfileRunningState,
                             ProfileCompletedState,
                             ProfileStoppedState,
-                            ManualState
+                            ManualState,
+                            ManualOffState,
+                            ManualOnState
         > myStatePack;
 
         friend class ProfileRunningState;

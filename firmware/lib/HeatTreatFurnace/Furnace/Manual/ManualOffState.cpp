@@ -15,7 +15,12 @@ namespace HeatTreatFurnace::Furnace
     void ManualOffState::on_exit_state()
     {
         auto& fsm = get_fsm_context();
-        fsm.SetHeaterOff();
+        if (fsm.IsHeaterOn())
+        {
+            fsm.SetHeaterOff();
+            EvtError evt(Error::SafetyInterlock, Domain::Furnace, "Exiting ManualOffState with the heater already on, this should never happen.");
+            fsm.Post(evt);
+        }
         get_fsm_context().SendLog(Log::LogLevel::Info, *this, "Exiting MANUAL_TEMP_OFF state");
     }
 
@@ -29,7 +34,7 @@ namespace HeatTreatFurnace::Furnace
 
     etl::fsm_state_id_t ManualOffState::on_event(EvtManualSetOn const& anEvent)
     {
-        return STATE_MANUAL_OFF;
+        return STATE_MANUAL_ON;
     }
 
     etl::fsm_state_id_t ManualOffState::on_event(EvtModeProfile const& anEvent)
@@ -39,9 +44,7 @@ namespace HeatTreatFurnace::Furnace
 
     etl::fsm_state_id_t ManualOffState::on_event(EvtModeOff const& anEvent)
     {
-        auto& fsm = get_fsm_context();
-        fsm.SetHeaterOff();
-        return STATE_PROFILE;
+        return STATE_OFF;
     }
 
     etl::fsm_state_id_t ManualOffState::on_event(EvtError const& anEvent)

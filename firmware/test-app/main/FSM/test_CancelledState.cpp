@@ -4,6 +4,8 @@
 
 namespace HeatTreatFurnace::Test
 {
+    using namespace trompeloeil;
+
     TEST_SUITE("StoppedState")
     {
         TEST_CASE("STOPPED: EvtProfileLoad transitions to LOADED")
@@ -22,6 +24,7 @@ namespace HeatTreatFurnace::Test
             EvtModeProfile profileEvt;
             fixture.fsm.Post(profileEvt);
             fixture.fsm.ProcessQueue();
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             //Transition to STOPPED
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -34,11 +37,13 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(loadEvt1);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+            REQUIRE(fixture.mockHeater.IsEnabled());
 
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ProfileStoppedState"),etl::string_view("Entered STOPPED state"))).TIMES(1);
@@ -46,6 +51,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(cancelEvt);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             // // Then load new profile
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -60,6 +66,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.ProcessQueue();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             REQUIRE_EQ(fixture.fsm.GetCurrentProfile().name, profile2.name);
         }
@@ -80,6 +87,7 @@ namespace HeatTreatFurnace::Test
             EvtModeProfile profileEvt;
             fixture.fsm.Post(profileEvt);
             fixture.fsm.ProcessQueue();
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             //Transition to STOPPED
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -92,11 +100,13 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(loadEvt1);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+            REQUIRE(fixture.mockHeater.IsEnabled());
 
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ProfileStoppedState"),etl::string_view("Entered STOPPED state"))).TIMES(1);
@@ -104,6 +114,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(cancelEvt);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             // // Then clear profile
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -117,7 +128,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.ProcessQueue();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
-
+            REQUIRE(!fixture.mockHeater.IsEnabled());
             REQUIRE(!fixture.fsm.IsProfileSet());
         }
 
@@ -149,11 +160,13 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(loadEvt1);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             EvtProfileStart startEvt;
             fixture.fsm.Post(startEvt);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_RUNNING);
+            REQUIRE(fixture.mockHeater.IsEnabled());
 
             REQUIRE_CALL(fixture.mockLogBackend,
                          WriteLog(_, etl::string_view("ProfileStoppedState"),etl::string_view("Entered STOPPED state"))).TIMES(1);
@@ -161,6 +174,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.Post(cancelEvt);
             fixture.fsm.ProcessQueue();
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_STOPPED);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
 
             // // Then send error
             REQUIRE_CALL(fixture.mockLogBackend,
@@ -174,6 +188,7 @@ namespace HeatTreatFurnace::Test
             fixture.fsm.ProcessQueue();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
         }
     }
 } // namespace HeatTreatFurnace::Test

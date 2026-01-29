@@ -35,6 +35,8 @@ add_library(HeatTreatFurnace
         Furnace/Manual/ManualOnState.hpp
         Furnace/Manual/ManualOffState.cpp
         Furnace/Manual/ManualOffState.hpp
+        Pid/PidController.cpp
+        Heater/HeaterController.cpp
 )
 
 target_link_libraries(HeatTreatFurnace PUBLIC etl::etl fmt::fmt-header-only)

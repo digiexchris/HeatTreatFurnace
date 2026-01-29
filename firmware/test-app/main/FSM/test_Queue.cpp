@@ -11,7 +11,6 @@ namespace HeatTreatFurnace::Test
     {
         TEST_CASE("Stores events in correct order")
         {
-
             EvtManualSetOff off;
             EvtModeManual man;
             EvtModeProfile prof;
@@ -33,7 +32,7 @@ namespace HeatTreatFurnace::Test
 
             etl::vector<std::pair<int, EventPriority>, 16> events;
 
-            fixture.queueManager.DrainQueue([&events](etl::imessage & aMsg)
+            fixture.queueManager.DrainQueue([&events](etl::imessage& aMsg)
             {
                 auto* evt = dynamic_cast<PriorityQueueEvent*>(&aMsg);
                 if (!events.full())
@@ -41,7 +40,6 @@ namespace HeatTreatFurnace::Test
                     etl::message_id_t id = evt->get_message_id();
                     events.emplace_back(std::pair<int, EventPriority>(id, evt->priority));
                 }
-
             });
 
             // INFO(events[0]);
@@ -52,7 +50,43 @@ namespace HeatTreatFurnace::Test
             // INFO(events[5]);
 
             //critical should come first
-INFO("HERE");
+            INFO("HERE");
+        }
+
+        TEST_CASE("Stores events in correct order as posted with same priority")
+        {
+            Profile profile;
+            EvtModeProfile prof;
+            EvtProfileLoad load(profile);
+            EvtProfileStart start;
+            EvtProfileStop stop;
+
+            FsmTestFixture fixture;
+
+            fixture.queueManager.Post(prof);
+            fixture.queueManager.Post(load);
+            fixture.queueManager.Post(start);
+            fixture.queueManager.Post(stop);
+            etl::vector<MessagePacket, 16> events;
+
+            fixture.queueManager.DrainQueue([&events](etl::imessage& aMsg)
+            {
+                auto* evt = dynamic_cast<MessagePacket*>(&aMsg);
+                if (!events.full())
+                {
+                    events.emplace_back(*evt);
+                }
+            });
+
+            INFO(events[0]);
+            INFO(events[1]);
+            INFO(events[2]);
+            INFO(events[3]);
+            INFO(events[4]);
+            INFO(events[5]);
+
+            //critical should come first
+            INFO("HERE");
         }
     }
 }

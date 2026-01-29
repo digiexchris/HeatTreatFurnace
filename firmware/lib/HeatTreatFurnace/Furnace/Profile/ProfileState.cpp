@@ -43,14 +43,6 @@ namespace HeatTreatFurnace::Furnace
         return STATE_PROFILE_LOADED;
     }
 
-    // etl::fsm_state_id_t ProfileState::on_event(EvtManualSetTemp const& anEvent)
-    // {
-    //     auto& fsm = get_fsm_context();
-    //     fsm.SetHeaterTarget(anEvent.targetTemp);
-    //     fsm.SendLog(Log::LogLevel::Debug, *this, "Manual temperature set event received, transitioning to manual mode");
-    //     return STATE_MANUAL;
-    // }
-
     //transitions to MANUAL, with the current setpoint set.
     //TODO the current set point will need to be shown in the UI.
     etl::fsm_state_id_t ProfileState::on_event(EvtModeManual const& anEvent)

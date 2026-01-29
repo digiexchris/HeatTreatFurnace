@@ -2,10 +2,11 @@
 
 namespace HeatTreatFurnace::Furnace
 {
-    FurnaceFsm::FurnaceFsm(Log::LogService& aLogger)
+    FurnaceFsm::FurnaceFsm(Log::LogService& aLogger, Heater::IHeaterController& aHeater)
         : etl::fsm(FURNACE_FSM_ROUTER), Log::Loggable(aLogger), // Router ID 0
           myQueueManager(aLogger),
-          myLogger(aLogger)
+          myLogger(aLogger),
+          myHeater(aHeater)
     {
     }
 
@@ -37,22 +38,22 @@ namespace HeatTreatFurnace::Furnace
 
     bool FurnaceFsm::SetHeaterTarget(float aTargetTemp)
     {
-        return true;
+        return myHeater.SetTargetTemp(aTargetTemp);
     }
 
     bool FurnaceFsm::IsHeaterOn() const
     {
-        return false;
+        return myHeater.IsEnabled();
     }
 
     bool FurnaceFsm::SetHeaterOff()
     {
-        return false;
+        return myHeater.Disable();
     }
 
     bool FurnaceFsm::SetHeaterOn()
     {
-        return false;
+        return myHeater.Enable();
     }
 
     bool FurnaceFsm::ClearProgram()

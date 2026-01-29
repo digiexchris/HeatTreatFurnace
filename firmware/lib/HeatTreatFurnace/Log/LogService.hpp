@@ -1,9 +1,6 @@
 #pragma once
 
 #include "LogBackend.hpp"
-#include <format>
-#include <string_view>
-#include <string>
 #include <etl/vector.h>
 
 #include "fmt/base.h"
