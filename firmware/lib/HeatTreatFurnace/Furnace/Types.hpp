@@ -19,17 +19,6 @@ namespace HeatTreatFurnace::Furnace
     constexpr std::size_t MaxMessageSize = 128U;
 
     /**
-     * @brief Priority levels for events (lower enum value = higher priority)
-     */
-    enum class EventPriority : uint8_t
-    {
-        Critical = 0U, ///< Highest priority (errors, safety)
-        Furnace = 1U, ///< Medium priority (control loop, state changes)
-        UI = 2U, ///< Lowest priority (user interface)
-        NONE = 4U
-    };
-
-    /**
      * @brief Error codes for FSM error handling
      *
      * Used in EvtError events to indicate the type of error that occurred.

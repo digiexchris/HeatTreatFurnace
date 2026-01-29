@@ -26,12 +26,50 @@ namespace HeatTreatFurnace::Test
 
         TEST_CASE("PROFILE_STATE: PROFILE transitions to PROFILE_LOADED with EvtProfileLoad event")
         {
-            REQUIRE(false);
+            FsmTestFixture fixture;
+            Profile profile;
+            profile.name = "Test Profile";
+
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+            EvtModeProfile modeEvt;
+            fixture.fsm.Post(modeEvt);
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
+
+            EvtProfileLoad loadEvt(profile);
+            fixture.fsm.Post(loadEvt);
+            fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(fixture.fsm.GetCurrentProfile().name == "Test Profile");
+            REQUIRE(fixture.fsm.GetCurrentProfile().isValid == true);
+            REQUIRE(!fixture.mockHeater.IsEnabled());
         }
 
         TEST_CASE("PROFILE_STATE: PROFILE transitions to PROFILE_LOADED with EvtModeProfile event from OFF")
         {
-            REQUIRE(false);
+            FsmTestFixture fixture;
+            Profile profile;
+            profile.name = "Loaded Profile";
+
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
+            fixture.Init();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+            fixture.fsm.LoadProfile(profile);
+            REQUIRE(fixture.fsm.GetCurrentProfile().isValid == true);
+
+            EvtModeProfile evct;
+            fixture.fsm.Post(evct);
+            fixture.fsm.ProcessQueue();
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::PROFILE_LOADED);
+            REQUIRE(fixture.fsm.GetCurrentProfile().name == "Loaded Profile");
+            REQUIRE(!fixture.mockHeater.IsEnabled());
         }
 
         TEST_CASE("PROFILE_STATE: Re-enters PROFILE_LOADED on mode change")
@@ -56,6 +94,7 @@ namespace HeatTreatFurnace::Test
         TEST_CASE("PROFILE_STATE: EvtError transitions to ERROR")
         {
             FsmTestFixture fixture;
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(_,_,_));
             fixture.Init();
 
             REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);

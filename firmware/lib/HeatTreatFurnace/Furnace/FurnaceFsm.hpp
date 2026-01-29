@@ -17,6 +17,7 @@
 #include "Furnace/Profile/ProfileCompletedState.hpp"
 
 #include <etl/fsm.h>
+#include <type_traits>
 
 namespace HeatTreatFurnace::Furnace
 {
@@ -39,19 +40,30 @@ namespace HeatTreatFurnace::Furnace
         void Init();
 
         /**
-         * @brief Post an event to the queue with specified priority
+         * @brief Post an event to the queue
          * @param aMsg Event message to post
-         * @param aPriority Priority level for the event
          * @return true if posted successfully, false if queue is full
+         *
+         * If the event is EvtError, the queue is flushed and the error
+         * is delivered directly to the FSM, bypassing the queue.
          */
         template <typename T>
         bool Post(T const& aMsg)
         {
-            return myQueueManager.Post(aMsg);
+            if constexpr (std::is_same_v<T, EvtError>)
+            {
+                myQueueManager.Flush();
+                etl::fsm::receive(aMsg);
+                return true;
+            }
+            else
+            {
+                return myQueueManager.Post(aMsg);
+            }
         }
 
         /**
-         * @brief Process all queued events in priority order
+         * @brief Process all queued events in FIFO order
          *
          * Drains the event queue and delivers each event to the FSM via
          * etl::fsm::receive(), which routes to current state handlers.

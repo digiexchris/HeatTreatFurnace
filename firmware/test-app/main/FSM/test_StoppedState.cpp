@@ -48,7 +48,7 @@ namespace HeatTreatFurnace::Test
 
             fixture.fsm.Post(EvtModeManual());
             fixture.fsm.ProcessQueue();
-            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL);
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::MANUAL_OFF);
             REQUIRE(!fixture.mockHeater.IsEnabled());
         }
 

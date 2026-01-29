@@ -1,92 +1,86 @@
-#include <thread>
 #include <doctest/doctest.h>
 #include <doctest/trompeloeil.hpp>
 #include "FsmTestFixture.hpp"
 
-#include <thread>
-
 namespace HeatTreatFurnace::Test
 {
-    TEST_SUITE("PriorityQueue")
+    TEST_SUITE("EventQueue")
     {
-        TEST_CASE("Stores events in correct order")
+        TEST_CASE("Stores events in FIFO order")
         {
             EvtManualSetOff off;
             EvtModeManual man;
             EvtModeProfile prof;
-            EvtError err(Error::ControllerFailure, Domain::Furnace, "Test error");
             EvtManualSetOn on;
 
             FsmTestFixture fixture;
 
-            fixture.queueManager.Post(err);
             fixture.queueManager.Post(on);
-            fixture.queueManager.Post(err);
             fixture.queueManager.Post(off);
             fixture.queueManager.Post(man);
             fixture.queueManager.Post(prof);
-            fixture.queueManager.Post(err);
 
+            etl::vector<etl::message_id_t, 16> eventIds;
 
-            // etl::vector<std::chrono::milliseconds, 4> events;
-
-            etl::vector<std::pair<int, EventPriority>, 16> events;
-
-            fixture.queueManager.DrainQueue([&events](etl::imessage& aMsg)
+            fixture.queueManager.DrainQueue([&eventIds](etl::imessage& aMsg)
             {
-                auto* evt = dynamic_cast<PriorityQueueEvent*>(&aMsg);
-                if (!events.full())
+                if (!eventIds.full())
                 {
-                    etl::message_id_t id = evt->get_message_id();
-                    events.emplace_back(std::pair<int, EventPriority>(id, evt->priority));
+                    eventIds.push_back(aMsg.get_message_id());
                 }
             });
 
-            // INFO(events[0]);
-            // INFO(events[1]);
-            // INFO(events[2]);
-            // INFO(events[3]);
-            // INFO(events[4]);
-            // INFO(events[5]);
-
-            //critical should come first
-            INFO("HERE");
+            REQUIRE(eventIds.size() == 4);
+            REQUIRE(eventIds[0] == EVENT_MANUAL_SET_ON);
+            REQUIRE(eventIds[1] == EVENT_MANUAL_SET_OFF);
+            REQUIRE(eventIds[2] == EVENT_MODE_MANUAL);
+            REQUIRE(eventIds[3] == EVENT_MODE_PROFILE);
         }
 
-        TEST_CASE("Stores events in correct order as posted with same priority")
+        TEST_CASE("Flush clears all events from queue")
         {
-            Profile profile;
-            EvtModeProfile prof;
-            EvtProfileLoad load(profile);
-            EvtProfileStart start;
-            EvtProfileStop stop;
-
             FsmTestFixture fixture;
 
-            fixture.queueManager.Post(prof);
-            fixture.queueManager.Post(load);
-            fixture.queueManager.Post(start);
-            fixture.queueManager.Post(stop);
-            etl::vector<MessagePacket, 16> events;
+            fixture.queueManager.Post(EvtModeProfile());
+            fixture.queueManager.Post(EvtModeManual());
+            fixture.queueManager.Post(EvtManualSetOn());
 
-            fixture.queueManager.DrainQueue([&events](etl::imessage& aMsg)
+            fixture.queueManager.Flush();
+
+            etl::vector<etl::message_id_t, 16> eventIds;
+            fixture.queueManager.DrainQueue([&eventIds](etl::imessage& aMsg)
             {
-                auto* evt = dynamic_cast<MessagePacket*>(&aMsg);
-                if (!events.full())
-                {
-                    events.emplace_back(*evt);
-                }
+                eventIds.push_back(aMsg.get_message_id());
             });
 
-            INFO(events[0]);
-            INFO(events[1]);
-            INFO(events[2]);
-            INFO(events[3]);
-            INFO(events[4]);
-            INFO(events[5]);
+            REQUIRE(eventIds.empty());
+        }
 
-            //critical should come first
-            INFO("HERE");
+        TEST_CASE("Error event flushes queue and transitions immediately")
+        {
+            FsmTestFixture fixture;
+
+            ALLOW_CALL(fixture.mockLogBackend, WriteLog(trompeloeil::_, trompeloeil::_, trompeloeil::_));
+
+            fixture.Init();
+            fixture.fsm.ProcessQueue();
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::OFF);
+
+            fixture.fsm.Post(EvtModeProfile());
+            fixture.fsm.Post(EvtModeManual());
+
+            EvtError err(Error::ControllerFailure, Domain::Furnace, "Test error");
+            fixture.fsm.Post(err);
+
+            REQUIRE(fixture.fsm.GetCurrentState() == StateId::ERROR);
+
+            etl::vector<etl::message_id_t, 16> eventIds;
+            fixture.queueManager.DrainQueue([&eventIds](etl::imessage& aMsg)
+            {
+                eventIds.push_back(aMsg.get_message_id());
+            });
+
+            REQUIRE(eventIds.empty());
         }
     }
 }

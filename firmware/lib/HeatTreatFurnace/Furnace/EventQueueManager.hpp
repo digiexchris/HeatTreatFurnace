@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Types.hpp"
 #include "Log/LogService.hpp"
 
 #include <etl/message.h>
@@ -11,11 +10,10 @@
 namespace HeatTreatFurnace::Furnace
 {
     /**
-     * @brief Thread-safe manager for the FSM event priority queue
+     * @brief Thread-safe manager for the FSM event FIFO queue
      *
-     * Manages posting events with priority levels and draining them for processing.
-     * Tracks sequence numbers for FIFO ordering within priority levels and handles
-     * overflow conditions according to the defined policy.
+     * Manages posting events and draining them for processing in FIFO order.
+     * Handles overflow conditions by routing to ERROR state.
      */
     class EventQueueManager
     {
@@ -23,9 +21,8 @@ namespace HeatTreatFurnace::Furnace
         explicit EventQueueManager(Log::LogService& aLogger);
 
         /**
-         * @brief Post an event to the queue with specified priority
+         * @brief Post an event to the queue
          * @param aMsg The event message to post
-         * @param aPriority Priority level for the event
          * @return true if posted successfully, false if queue is full
          */
         template <typename T>
@@ -43,14 +40,14 @@ namespace HeatTreatFurnace::Furnace
             }
             else
             {
-                success = PrivHandleOverflow(aMsg.priority);
+                success = PrivHandleOverflow();
             }
 
             return success;
         }
 
         /**
-         * @brief Drain and process all events from the queue in priority order
+         * @brief Drain and process all events from the queue in FIFO order
          * @param aHandler Callback to process each message (typically FSM receive)
          */
         template <typename Handler>
@@ -61,7 +58,7 @@ namespace HeatTreatFurnace::Furnace
                 MessagePacket* packet = nullptr;
                 {
                     std::lock_guard<std::mutex> lock(myMutex);
-                    packet = myQueue.top();
+                    packet = myQueue.front();
                     myQueue.pop();
                 }
 
@@ -72,6 +69,23 @@ namespace HeatTreatFurnace::Furnace
                     std::lock_guard<std::mutex> lock(myMutex);
                     myEventPool.release(packet);
                 }
+            }
+        }
+
+        /**
+         * @brief Flush all events from the queue without processing
+         *
+         * Clears the queue and releases all packets back to the pool.
+         * Used when an error event is posted to discard pending events.
+         */
+        void Flush()
+        {
+            std::lock_guard<std::mutex> lock(myMutex);
+            while (!myQueue.empty())
+            {
+                MessagePacket* packet = myQueue.front();
+                myQueue.pop();
+                myEventPool.release(packet);
             }
         }
 
@@ -87,19 +101,17 @@ namespace HeatTreatFurnace::Furnace
         void ResetOverflowCount() noexcept;
 
     private:
-        EventPriorityQueue myQueue;
+        EventQueue myQueue;
         etl::pool<MessagePacket, 48U> myEventPool; //statically allocated memory for creating events on
         std::mutex myMutex;
-        uint32_t mySequence{0U};
         uint32_t myOverflowCount{0U};
         Log::LogService& myLogger;
 
         /**
-         * @brief Handle queue overflow based on priority
-         * @param aPriority Priority of the event that overflowed
-         * @return true if should route to ERROR state (Critical or Furnace overflow)
+         * @brief Handle queue overflow
+         * @return false (overflow condition)
          */
-        bool PrivHandleOverflow(EventPriority aPriority);
+        bool PrivHandleOverflow();
     };
 } // namespace HeatTreatFurnace::FSM
 
