@@ -1,7 +1,7 @@
 // Status bar and UI updates
 
 import { state, isProgramRunning, setIsProgramRunning } from '../state.js';
-import { STATUS_NAMES, STATUS_CLASSES } from '../types/state.js';
+import { formatModeStatus, statusClass } from '../types/state.js';
 import { formatTemp } from '../utils.js';
 
 export function updateUI() {
@@ -19,8 +19,8 @@ export function updateUI() {
 
   const badge = document.getElementById('statusBadge');
   if (badge) {
-    badge.textContent = STATUS_NAMES[s.program_status] || 'UNKNOWN';
-    badge.className = 'program-status ' + (STATUS_CLASSES[s.program_status] || '');
+    badge.textContent = formatModeStatus(s);
+    badge.className = 'program-status ' + statusClass(s);
   }
 
   // Dashboard
@@ -41,7 +41,7 @@ export function updateUI() {
   if (dashTarget) dashTarget.textContent = formatTemp(s.set_temp);
   if (dashEnv) dashEnv.textContent = formatTemp(s.env_temp);
   if (dashCase) dashCase.textContent = formatTemp(s.case_temp);
-  if (dashStatus) dashStatus.textContent = STATUS_NAMES[s.program_status] || '--';
+  if (dashStatus) dashStatus.textContent = formatModeStatus(s) || '--';
   if (dashProgram) dashProgram.textContent = s.program_name || '--';
   if (dashStep) dashStep.textContent = s.step || '--';
   if (dashHeat) dashHeat.textContent = `${s.heat_percent || 0}%`;
@@ -50,19 +50,21 @@ export function updateUI() {
   if (dashTime) dashTime.textContent = s.curr_time || '--';
   if (dashChange) dashChange.textContent = `${(s.temp_change || 0).toFixed(1)}°C/h`;
 
-  updateLoadControls(s.program_status);
-  updateStartButton(s.program_status);
+  const isRunning = s.mode === 2 && s.profile_state === 2;
+  updateLoadControls(isRunning);
+  updateStartButton(isRunning);
+  updateManualControls(s.mode === 3);
+  updateModeSelector(s.mode);
 }
 
-export function updateLoadControls(status: number) {
-  const running = status === 2;
-  setIsProgramRunning(running);
+export function updateLoadControls(isRunning: boolean) {
+  setIsProgramRunning(isRunning);
   const select = document.getElementById('programSelect') as HTMLSelectElement | null;
-  if (select) select.disabled = running;
+  if (select) select.disabled = isRunning;
   const sidebarBtn = document.getElementById('sidebarLoadBtn') as HTMLButtonElement | null;
-  if (sidebarBtn) sidebarBtn.disabled = running;
+  if (sidebarBtn) sidebarBtn.disabled = isRunning;
   const clearBtn = document.getElementById('sidebarClearBtn') as HTMLButtonElement | null;
-  if (clearBtn) clearBtn.disabled = running;
+  if (clearBtn) clearBtn.disabled = isRunning;
   applyProgramLoadButtons();
 }
 
@@ -74,12 +76,28 @@ export function applyProgramLoadButtons() {
   });
 }
 
-export function updateStartButton(status: number) {
+export function updateStartButton(isRunning: boolean) {
   const btn = document.getElementById('startBtn') as HTMLButtonElement | null;
-  const running = status === 2;
   if (!btn) return;
-  btn.disabled = running;
-  btn.classList.toggle('primary', !running);
-  btn.classList.toggle('running-disabled', running);
+  btn.disabled = isRunning;
+  btn.classList.toggle('primary', !isRunning);
+  btn.classList.toggle('running-disabled', isRunning);
+}
+
+export function updateManualControls(isManual: boolean) {
+  const input = document.getElementById('tempInput') as HTMLInputElement | null;
+  const btn = document.querySelector<HTMLButtonElement>('button[onclick="setTemperature()"]');
+  if (input) input.disabled = !isManual;
+  if (btn) btn.disabled = !isManual;
+}
+
+export function updateModeSelector(mode: number) {
+  const select = document.getElementById('modeSelect') as HTMLSelectElement | null;
+  if (!select) return;
+  const valueMap: Record<number, string> = { 0: 'off', 1: 'error', 2: 'profile', 3: 'manual' };
+  const newValue = valueMap[mode];
+  if (newValue && select.value !== newValue) {
+    select.value = newValue;
+  }
 }
 

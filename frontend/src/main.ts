@@ -4,10 +4,10 @@
 import { navigate, initRouter } from './router.js';
 
 // WebSocket connection
-import { connect, disconnect, manualConnect, sendTimeScale, clearError } from './websocket.js';
+import { connect, disconnect, manualConnect, sendTimeScale } from './websocket.js';
 
 // Commands
-import { sendCommand, loadProgram, clearProgram, setTemperature, reboot } from './commands.js';
+import { sendCommand, loadProgram, clearProgram, setTemperature, setMode, reboot } from './commands.js';
 
 // Chart functions
 import { loadChartHistory, resetZoom, toggleAutoScroll, centerOnProgram } from './chart/dashboard.js';
@@ -77,7 +77,7 @@ declare global {
     uploadFirmware: typeof uploadFirmware;
     toggleWsLog: typeof toggleWsLog;
     clearLog: typeof clearLog;
-    clearError: typeof clearError;
+    setMode: typeof setMode;
   }
 }
 
@@ -109,7 +109,7 @@ Object.assign(window, {
   uploadFirmware,
   toggleWsLog,
   clearLog,
-  clearError,
+  setMode,
 });
 
 export {};

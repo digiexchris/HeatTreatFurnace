@@ -12,14 +12,12 @@ import { ServerMessage } from './generated/furnace/server-message.js';
 
 // Commands
 import { StartCommand } from './generated/furnace/start-command.js';
-import { PauseCommand } from './generated/furnace/pause-command.js';
-import { ResumeCommand } from './generated/furnace/resume-command.js';
 import { StopCommand } from './generated/furnace/stop-command.js';
 import { LoadCommand } from './generated/furnace/load-command.js';
 import { UnloadCommand } from './generated/furnace/unload-command.js';
 import { SetTempCommand } from './generated/furnace/set-temp-command.js';
 import { SetTimeScaleCommand } from './generated/furnace/set-time-scale-command.js';
-import { ClearErrorCommand } from './generated/furnace/clear-error-command.js';
+import { SetModeCommand } from './generated/furnace/set-mode-command.js';
 
 // Requests
 import { HistoryRequest } from './generated/furnace/history-request.js';
@@ -45,11 +43,13 @@ import { LogListResponse } from './generated/furnace/log-list-response.js';
 import { LogContentResponse } from './generated/furnace/log-content-response.js';
 import { Error as FbError } from './generated/furnace/error.js';
 
-import { ProgramStatus } from './generated/furnace/program-status.js';
+import { FurnaceMode } from './generated/furnace/furnace-mode.js';
+import { ProfileSubState } from './generated/furnace/profile-sub-state.js';
+import { ManualSubState } from './generated/furnace/manual-sub-state.js';
 import { MarkerType } from './generated/furnace/marker-type.js';
 
 // Re-export enums for external use
-export { ClientMessage, ServerMessage, ProgramStatus, MarkerType };
+export { ClientMessage, ServerMessage, FurnaceMode, ProfileSubState, ManualSubState, MarkerType };
 
 // =============================================================================
 // Request ID Management
@@ -85,7 +85,9 @@ export function resolvePendingRequest(requestId: number, response: DecodedServer
 
 export interface DecodedState {
   type: 'state';
-  programStatus: number;
+  mode: number;
+  profileState: number;
+  manualState: number;
   programName: string | null;
   kilnTemp: number;
   setTemp: number;
@@ -229,24 +231,6 @@ export function encodeStartCommand(segment?: number, minute?: number): Uint8Arra
   return createEnvelope(builder, getNextRequestId(), ClientMessage.StartCommand, cmd);
 }
 
-export function encodePauseCommand(): Uint8Array {
-  const builder = new flatbuffers.Builder(32);
-  
-  PauseCommand.startPauseCommand(builder);
-  const cmd = PauseCommand.endPauseCommand(builder);
-  
-  return createEnvelope(builder, getNextRequestId(), ClientMessage.PauseCommand, cmd);
-}
-
-export function encodeResumeCommand(): Uint8Array {
-  const builder = new flatbuffers.Builder(32);
-  
-  ResumeCommand.startResumeCommand(builder);
-  const cmd = ResumeCommand.endResumeCommand(builder);
-  
-  return createEnvelope(builder, getNextRequestId(), ClientMessage.ResumeCommand, cmd);
-}
-
 export function encodeStopCommand(): Uint8Array {
   const builder = new flatbuffers.Builder(32);
   
@@ -287,6 +271,16 @@ export function encodeSetTempCommand(temperature: number): Uint8Array {
   return createEnvelope(builder, getNextRequestId(), ClientMessage.SetTempCommand, cmd);
 }
 
+export function encodeSetModeCommand(mode: number): Uint8Array {
+  const builder = new flatbuffers.Builder(32);
+  
+  SetModeCommand.startSetModeCommand(builder);
+  SetModeCommand.addMode(builder, mode);
+  const cmd = SetModeCommand.endSetModeCommand(builder);
+  
+  return createEnvelope(builder, getNextRequestId(), ClientMessage.SetModeCommand, cmd);
+}
+
 export function encodeSetTimeScaleCommand(timeScale: number): Uint8Array {
   const builder = new flatbuffers.Builder(48);
   
@@ -295,15 +289,6 @@ export function encodeSetTimeScaleCommand(timeScale: number): Uint8Array {
   const cmd = SetTimeScaleCommand.endSetTimeScaleCommand(builder);
   
   return createEnvelope(builder, getNextRequestId(), ClientMessage.SetTimeScaleCommand, cmd);
-}
-
-export function encodeClearErrorCommand(): Uint8Array {
-  const builder = new flatbuffers.Builder(32);
-  
-  ClearErrorCommand.startClearErrorCommand(builder);
-  const cmd = ClearErrorCommand.endClearErrorCommand(builder);
-  
-  return createEnvelope(builder, getNextRequestId(), ClientMessage.ClearErrorCommand, cmd);
 }
 
 // Requests
@@ -424,7 +409,9 @@ export function encodeGetLogRequest(name: string): Uint8Array {
 function decodeState(state: State): DecodedState {
   return {
     type: 'state',
-    programStatus: state.programStatus(),
+    mode: state.mode(),
+    profileState: state.profileState(),
+    manualState: state.manualState(),
     programName: state.programName(),
     kilnTemp: state.kilnTemp(),
     setTemp: state.setTemp(),

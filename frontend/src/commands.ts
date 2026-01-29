@@ -6,12 +6,11 @@ import { getErrorMessage } from './utils.js';
 import { updateChartData, setDefaultView } from './chart/dashboard.js';
 import {
   encodeStartCommand,
-  encodePauseCommand,
-  encodeResumeCommand,
   encodeStopCommand,
   encodeLoadCommand,
   encodeUnloadCommand,
   encodeSetTempCommand,
+  encodeSetModeCommand,
 } from './flatbuffers.js';
 
 export function sendCommand(action: string, params: Record<string, unknown> = {}) {
@@ -29,12 +28,6 @@ export function sendCommand(action: string, params: Record<string, unknown> = {}
         params.minute as number | undefined
       );
       break;
-    case 'pause':
-      encoded = encodePauseCommand();
-      break;
-    case 'resume':
-      encoded = encodeResumeCommand();
-      break;
     case 'stop':
       encoded = encodeStopCommand();
       break;
@@ -46,6 +39,9 @@ export function sendCommand(action: string, params: Record<string, unknown> = {}
       break;
     case 'set_temp':
       encoded = encodeSetTempCommand(params.temperature as number);
+      break;
+    case 'set_mode':
+      encoded = encodeSetModeCommand(params.mode as number);
       break;
     default:
       log('error', `Unknown command: ${action}`);
@@ -73,7 +69,7 @@ export function loadProgram() {
 }
 
 export function clearProgram() {
-  if (state.program_status === 2) {
+  if (state.mode === 2 && state.profile_state === 2) {
     window.alert('Cannot unload while program is running. Stop the program first.');
     return;
   }
@@ -87,6 +83,10 @@ export function clearProgram() {
 }
 
 export function setTemperature() {
+  if (state.mode !== 3) {
+    window.alert('Switch to Manual mode before setting temperature.');
+    return;
+  }
   const input = document.getElementById('tempInput') as HTMLInputElement | null;
   const temp = input ? parseFloat(input.value) : NaN;
   if (Number.isNaN(temp)) {
@@ -94,6 +94,22 @@ export function setTemperature() {
     return;
   }
   sendCommand('set_temp', { temperature: temp });
+}
+
+export function setMode() {
+  const select = document.getElementById('modeSelect') as HTMLSelectElement | null;
+  if (!select) {
+    log('error', 'Mode select not found');
+    return;
+  }
+  const value = select.value;
+  const modeMap: Record<string, number> = { off: 0, error: 1, profile: 2, manual: 3 };
+  const mode = modeMap[value];
+  if (mode === undefined) {
+    log('error', `Unknown mode: ${value}`);
+    return;
+  }
+  sendCommand('set_mode', { mode });
 }
 
 export async function reboot() {

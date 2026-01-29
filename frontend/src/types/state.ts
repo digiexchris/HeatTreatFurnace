@@ -1,17 +1,26 @@
 // Application state types
 
-export type ProgramStatusCode =
+export type FurnaceModeCode =
+  | 0 // OFF
+  | 1 // ERROR
+  | 2 // PROFILE
+  | 3; // MANUAL
+
+export type ProfileSubStateCode =
   | 0 // NONE
-  | 1 // READY
+  | 1 // LOADED
   | 2 // RUNNING
-  | 3 // PAUSED
-  | 4 // STOPPED
-  | 5 // ERROR
-  | 6 // WAITING_THRESHOLD
-  | 7; // FINISHED
+  | 3 // STOPPED
+  | 4; // COMPLETED
+
+export type ManualSubStateCode =
+  | 0 // OFF
+  | 1; // ON
 
 export interface FurnaceState {
-  program_status: ProgramStatusCode;
+  mode: FurnaceModeCode;
+  profile_state: ProfileSubStateCode;
+  manual_state: ManualSubStateCode;
   program_name: string | null;
   kiln_temp: number;
   set_temp: number;
@@ -68,12 +77,44 @@ export interface GenericMessage {
 
 export type IncomingMessage = StateMessage | GenericMessage;
 
-export const STATUS_NAMES: Record<number, string> = {
-  0: 'NONE', 1: 'READY', 2: 'RUNNING', 3: 'PAUSED',
-  4: 'STOPPED', 5: 'ERROR', 6: 'WAITING', 7: 'FINISHED',
+export const MODE_NAMES: Record<number, string> = {
+  0: 'OFF',
+  1: 'ERROR',
+  2: 'PROFILE',
+  3: 'MANUAL',
 };
 
-export const STATUS_CLASSES: Record<number, string> = {
-  2: 'running', 3: 'paused', 5: 'error',
+export const PROFILE_STATE_NAMES: Record<number, string> = {
+  0: 'NONE',
+  1: 'LOADED',
+  2: 'RUNNING',
+  3: 'STOPPED',
+  4: 'COMPLETED',
 };
+
+export const MANUAL_STATE_NAMES: Record<number, string> = {
+  0: 'OFF',
+  1: 'ON',
+};
+
+export function formatModeStatus(state: FurnaceState): string {
+  switch (state.mode) {
+    case 0:
+      return 'OFF';
+    case 1:
+      return 'ERROR';
+    case 2:
+      return `PROFILE: ${PROFILE_STATE_NAMES[state.profile_state] || 'UNKNOWN'}`;
+    case 3:
+      return `MANUAL: ${MANUAL_STATE_NAMES[state.manual_state] || 'UNKNOWN'}`;
+    default:
+      return 'UNKNOWN';
+  }
+}
+
+export function statusClass(state: FurnaceState): string {
+  if (state.mode === 1) return 'error';
+  if (state.mode === 2 && state.profile_state === 2) return 'running';
+  return '';
+}
 
