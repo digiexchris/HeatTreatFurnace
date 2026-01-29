@@ -13,6 +13,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../etl-20.44.2 ETLCPP)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/../fmt-12.1.0 FMT)
 
+# FlatBuffers include path (header-only library)
+set(FLATBUFFERS_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/../flatbuffers-23.5.26/include)
+
 add_library(HeatTreatFurnace
         Furnace/EventQueueManager.cpp
         Furnace/FurnaceFsm.cpp
@@ -37,12 +40,14 @@ add_library(HeatTreatFurnace
         Furnace/Manual/ManualOffState.hpp
         Pid/PidController.cpp
         Heater/HeaterController.cpp
+        Communication/MessageCodec.cpp
+        Communication/FurnaceMessageHandler.cpp
 )
 
 target_link_libraries(HeatTreatFurnace PUBLIC etl::etl fmt::fmt-header-only)
 
 set_property(TARGET HeatTreatFurnace PROPERTY CXX_STANDARD 23)
-target_include_directories(HeatTreatFurnace PUBLIC .)
+target_include_directories(HeatTreatFurnace PUBLIC . ${FLATBUFFERS_INCLUDE_DIR})
 
 
 

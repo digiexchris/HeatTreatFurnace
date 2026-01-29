@@ -16,6 +16,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
+      - ./:/app/simulator
       # Mount proto schema for code generation
       - ../proto:/app/proto:ro
       # Mount entire frontend directory for live development

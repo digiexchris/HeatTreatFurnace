@@ -236,23 +236,23 @@ enum MarkerType : byte {
 ## Migration Checklist
 
 ### Phase 1: Protocol
-- [ ] Update `proto/furnace.fbs` with new enums and messages
-- [ ] Regenerate TypeScript bindings
+- [x] Update `proto/furnace.fbs` with new enums and messages
+- [x] Regenerate frontend TypeScript bindings (simulator deferred)
 - [ ] Regenerate C bindings (if used)
 
 ### Phase 2: Backend Test
 - [ ] Add test cases for `EvtManualSetTemp` rejection in non-Manual modes
 
 ### Phase 3: Simulator
-- [ ] Update state machine to mode-centric model
-- [ ] Update protocol handlers
-- [ ] Test all state transitions
+- [ ] Update state machine to mode-centric model (deferred)
+- [ ] Update protocol handlers (deferred)
+- [ ] Test all state transitions (deferred)
 
 ### Phase 4: Frontend
-- [ ] Update state store
-- [ ] Update UI components
-- [ ] Update commands
-- [ ] Update BDD tests
+- [x] Update state store
+- [x] Update UI components
+- [x] Update commands
+- [x] Update BDD tests
 
 ### Phase 5: Integration Testing
 - [ ] Test frontend with simulator

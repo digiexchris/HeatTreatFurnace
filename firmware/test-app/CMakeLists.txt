@@ -48,6 +48,8 @@ add_executable(test_app
         main/FSM/test_Queue.cpp
         main/Pid/test_PidController.cpp
         main/Heater/test_HeaterController.cpp
+        main/Communication/test_MessageCodec.cpp
+        main/Communication/test_FurnaceMessageHandler.cpp
 )
 
 target_link_libraries(test_app
@@ -58,6 +60,7 @@ target_link_libraries(test_app
 
 target_include_directories(test_app PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/main/Communication
 )
 
 set_target_properties(test_app PROPERTIES
