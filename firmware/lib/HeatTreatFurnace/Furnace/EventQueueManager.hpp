@@ -40,7 +40,8 @@ namespace HeatTreatFurnace::Furnace
             }
             else
             {
-                success = PrivHandleOverflow();
+                auto evtId = static_cast<EventId>(aMsg.get_message_id());
+                success = PrivHandleOverflow(evtId);
             }
 
             return success;
@@ -111,7 +112,7 @@ namespace HeatTreatFurnace::Furnace
          * @brief Handle queue overflow
          * @return false (overflow condition)
          */
-        bool PrivHandleOverflow();
+        bool PrivHandleOverflow(EventId andEvtId);
     };
 } // namespace HeatTreatFurnace::FSM
 

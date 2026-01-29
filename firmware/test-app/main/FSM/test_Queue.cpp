@@ -82,5 +82,73 @@ namespace HeatTreatFurnace::Test
 
             REQUIRE(eventIds.empty());
         }
+
+        TEST_CASE("Queue overflow increments overflow count and returns false")
+        {
+            FsmTestFixture fixture;
+
+            REQUIRE(fixture.queueManager.GetOverflowCount() == 0);
+
+            for (size_t i = 0; i < 48; ++i)
+            {
+                bool result = fixture.queueManager.Post(EvtTick());
+                REQUIRE(result == true);
+            }
+
+            REQUIRE(fixture.queueManager.GetOverflowCount() == 0);
+
+            auto containsString = [](const std::string& expected)
+            {
+                return trompeloeil::make_matcher<etl::string_view>(
+                    [expected](etl::string_view msg)
+                    {
+                        return std::string(msg.data(), msg.size()).find(expected) != std::string::npos;
+                    },
+                    [expected](std::ostream& os)
+                    {
+                        os << " containing \"" << expected << "\"";
+                    }
+                );
+            };
+
+            {
+                REQUIRE_CALL(fixture.mockLogBackend, WriteLog(
+                                 LogLevel::Warn,
+                                 containsString("QUEUE"),
+                                 containsString("EVENT_MODE_PROFILE")
+                             )).TIMES(1);
+
+                bool overflowResult = fixture.queueManager.Post(EvtModeProfile());
+                REQUIRE(overflowResult == false);
+                REQUIRE(fixture.queueManager.GetOverflowCount() == 1);
+            }
+
+            {
+                REQUIRE_CALL(fixture.mockLogBackend, WriteLog(
+                                 LogLevel::Warn,
+                                 containsString("QUEUE"),
+                                 containsString("EVENT_MODE_MANUAL")
+                             )).TIMES(1);
+
+                bool overflowResult = fixture.queueManager.Post(EvtModeManual());
+                REQUIRE(overflowResult == false);
+                REQUIRE(fixture.queueManager.GetOverflowCount() == 2);
+            }
+
+            {
+                REQUIRE_CALL(fixture.mockLogBackend, WriteLog(
+                                 LogLevel::Warn,
+                                 containsString("QUEUE"),
+                                 containsString("EVENT_MODE_OFF")
+                             )).TIMES(1);
+
+                bool overflowResult = fixture.queueManager.Post(EvtModeOff());
+                REQUIRE(overflowResult == false);
+                REQUIRE(fixture.queueManager.GetOverflowCount() == 3);
+            }
+
+            fixture.queueManager.ResetOverflowCount();
+            REQUIRE(fixture.queueManager.GetOverflowCount() == 0);
+        }
     }
 }

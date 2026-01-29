@@ -22,10 +22,10 @@ namespace HeatTreatFurnace::Furnace
         myOverflowCount = 0U;
     }
 
-    bool EventQueueManager::PrivHandleOverflow()
+    bool EventQueueManager::PrivHandleOverflow(EventId andEvtId)
     {
         myOverflowCount++;
-        // TODO: Use actual logging once integrated
+        myLogger.Log(Log::LogLevel::Warn, "QUEUE", "Queue full inserting {}", EventIdToString(andEvtId));
         return false;
     }
 } // namespace FSM
