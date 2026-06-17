@@ -1,0 +1,16 @@
+{
+  "name": "Hardening",
+  "description": "Basic hardening heat treatment - heat to austenitizing, hold, then quench",
+  "segments": [
+    {
+      "target": 800,
+      "ramp_time": 2400,
+      "dwell_time": 1200
+    },
+    {
+      "target": 850,
+      "ramp_time": 600,
+      "dwell_time": 1800
+    }
+  ]
+}

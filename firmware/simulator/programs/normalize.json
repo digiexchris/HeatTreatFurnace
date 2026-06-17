@@ -1,0 +1,11 @@
+{
+  "name": "Normalize",
+  "description": "Basic normalizing heat treatment for steel - heat to austenitizing temperature and air cool",
+  "segments": [
+    {
+      "target": 850,
+      "ramp_time": 3600,
+      "dwell_time": 1800
+    }
+  ]
+}

@@ -7,25 +7,32 @@ namespace Furnace;
 // Enums
 // ============================================
 
-enum ProgramStatus : byte {
+enum FurnaceMode : byte {
+  Off = 0,
+  Error = 1,
+  Profile = 2,
+  Manual = 3
+}
+
+enum ProfileSubState : byte {
   None = 0,
-  Ready = 1,
+  Loaded = 1,
   Running = 2,
-  Paused = 3,
-  Stopped = 4,
-  Error = 5,
-  WaitingThreshold = 6,
-  Finished = 7
+  Stopped = 3,
+  Completed = 4
+}
+
+enum ManualSubState : byte {
+  Off = 0,
+  On = 1
 }
 
 enum MarkerType : byte {
   Start = 0,
   Stop = 1,
   Finish = 2,
-  Pause = 3,
-  Resume = 4,
-  Target = 5,
-  Step = 6
+  Target = 3,
+  Step = 4
 }
 
 // ============================================
@@ -33,7 +40,9 @@ enum MarkerType : byte {
 // ============================================
 
 table State {
-  program_status: ProgramStatus;
+  mode: FurnaceMode;
+  profile_state: ProfileSubState;
+  manual_state: ManualSubState;
   program_name: string;
   kiln_temp: float;
   set_temp: float;
@@ -125,13 +134,12 @@ table StartCommand {
   minute: int = 0;   // 0 = from beginning
 }
 
-table PauseCommand {}
-table ResumeCommand {}
 table StopCommand {}
 table LoadCommand { program: string (required); }
 table UnloadCommand {}
 table SetTempCommand { temperature: float; }
-table ClearErrorCommand {}
+
+table SetModeCommand { mode: FurnaceMode; }
 
 // Simulator-only: Set time acceleration (1.0 to 25.0)
 table SetTimeScaleCommand { time_scale: float; }
@@ -167,13 +175,11 @@ table GetLogRequest { name: string (required); }
 union ClientMessage {
   // Commands
   StartCommand,
-  PauseCommand,
-  ResumeCommand,
   StopCommand,
   LoadCommand,
   UnloadCommand,
   SetTempCommand,
-  ClearErrorCommand,
+  SetModeCommand,
   SetTimeScaleCommand,  // Simulator only
   // Requests
   HistoryRequest,

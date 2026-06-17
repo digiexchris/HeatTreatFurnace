@@ -146,25 +146,24 @@ Feature: Dashboard View
     And the profile should NOT remain at the old start time
 
   @dashboard @error
-  Scenario: Error overlay displays when in ERROR state
-    Given the backend enters an ERROR state
+  Scenario: Error overlay displays when in ERROR mode
+    Given the backend enters an ERROR mode
     And the error_message is "Thermocouple read failure"
     Then an error overlay should appear over the chart
     And the overlay should display the error message "Thermocouple read failure"
-    And the overlay should have a "Dismiss & Clear Error" button
+    And the overlay should instruct the user to select a mode
 
   @dashboard @error
   Scenario: Error overlay persists on page reload
-    Given the backend is in ERROR state with message "Case overtemperature"
+    Given the backend is in ERROR mode with message "Case overtemperature"
     When I reload the page
     Then the error overlay should still be visible
     And the error message should be "Case overtemperature"
 
   @dashboard @error
-  Scenario: Dismissing error clears the state
+  Scenario: Selecting a mode clears the error
     Given the error overlay is visible
-    When I click the "Dismiss & Clear Error" button
+    When I set the mode to "Off"
     Then the error overlay should disappear
-    And the status badge should show "STOPPED"
-    And the kiln should continue cooling
+    And the status badge should show "OFF"
 

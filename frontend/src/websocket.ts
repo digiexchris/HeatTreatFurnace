@@ -7,8 +7,8 @@ import {
   setProgramProfile, setProgramProfileLocked, state,
   setIsSimulator, setTimeScale, setSimulatedNow, isSimulator, timeScale,
 } from './state.js';
-import type { FurnaceState, ProgramStatusCode, IncomingMessage } from './types/state.js';
-import { encodeSetTimeScaleCommand, encodeClearErrorCommand } from './flatbuffers.js';
+import type { FurnaceState, FurnaceModeCode, ProfileSubStateCode, ManualSubStateCode, IncomingMessage } from './types/state.js';
+import { encodeSetTimeScaleCommand } from './flatbuffers.js';
 import { getErrorMessage } from './utils.js';
 import { log } from './views/debug.js';
 import { updateUI } from './ui/statusbar.js';
@@ -195,20 +195,14 @@ export function sendTimeScale(scale: number) {
   }
 }
 
-export function clearError() {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(encodeClearErrorCommand());
-  }
-}
-
 function updateErrorOverlay(s: FurnaceState) {
   const overlay = document.getElementById('errorOverlay');
   const messageEl = document.getElementById('errorMessage');
   
   if (!overlay) return;
   
-  // Show overlay when in ERROR state (status code 5)
-  if (s.program_status === 5 && s.error_message) {
+  // Show overlay when in ERROR mode
+  if (s.mode === 1 && s.error_message) {
     if (messageEl) messageEl.textContent = s.error_message;
     overlay.style.display = 'flex';
   } else {
@@ -227,7 +221,9 @@ function handleFlatBuffersMessage(msg: DecodedServerMessage) {
     case 'state': {
       const s = msg as DecodedState;
       const newState: FurnaceState = {
-        program_status: s.programStatus as ProgramStatusCode,
+        mode: s.mode as FurnaceModeCode,
+        profile_state: s.profileState as ProfileSubStateCode,
+        manual_state: s.manualState as ManualSubStateCode,
         program_name: s.programName,
         kiln_temp: s.kilnTemp,
         set_temp: s.setTemp,

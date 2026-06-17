@@ -124,19 +124,22 @@ export function buildProfileChartData(targetTimestamps: number[]): (number | nul
   });
 }
 
-// Track the last known program status to detect transitions
-let lastProgramStatus: number = 0;
+// Track the last known profile state to detect transitions
+let lastProfileState: number = 0;
+let lastMode: number = 0;
 
 export function handleProgramProfileUpdate() {
   const prevProgramName = programProfile?.name;
   const currentProgramName = state.program_name;
-  const currentStatus = state.program_status;
+  const currentMode = state.mode;
+  const currentProfileState = state.profile_state;
 
   // Clear profile when no program is loaded
-  if (!currentProgramName || currentStatus === 0) {
+  if (currentMode !== 2 || !currentProgramName || currentProfileState === 0) {
     setProgramProfile(null);
     setProgramProfileLocked(false);
-    lastProgramStatus = currentStatus;
+    lastProfileState = currentProfileState;
+    lastMode = currentMode;
     return;
   }
 
@@ -145,20 +148,22 @@ export function handleProgramProfileUpdate() {
   if (programJustChanged) {
     setProgramProfileLocked(false);
     void loadProgramProfile(currentProgramName);
-    lastProgramStatus = currentStatus;
+    lastProfileState = currentProfileState;
+    lastMode = currentMode;
     return;
   }
 
   // Only process if we have a matching profile
   const profileMatchesProgram = programProfile && programProfile.name === currentProgramName;
   if (!profileMatchesProgram) {
-    lastProgramStatus = currentStatus;
+    lastProfileState = currentProfileState;
+    lastMode = currentMode;
     return;
   }
 
-  const wasRunning = lastProgramStatus === 2;
-  const isRunning = currentStatus === 2;
-  const isReady = currentStatus === 1;
+  const wasRunning = lastMode === 2 && lastProfileState === 2;
+  const isRunning = currentMode === 2 && currentProfileState === 2;
+  const isLoaded = currentMode === 2 && currentProfileState === 1;
 
   // Detect transition TO running state (program just started or restarted)
   if (isRunning && !wasRunning && programProfile) {
@@ -175,16 +180,17 @@ export function handleProgramProfileUpdate() {
         temps: programProfile.temps,
       });
     }
-  } else if (isReady && !programProfileLocked) {
-    // READY state and not locked - profile should follow "now"
+  } else if (isLoaded && !programProfileLocked) {
+    // LOADED state and not locked - profile should follow "now"
     // (This handles initial load, but doesn't unlock a stopped program)
     setProgramProfileLocked(false);
   }
-  // For STOPPED/FINISHED/ERROR states: keep current lock state (don't change anything)
+  // For STOPPED/COMPLETED/ERROR modes: keep current lock state (don't change anything)
   // For continued RUNNING state: keep current lock state
 
   // Handle page reload: if running/stopped but not locked, sync with backend
-  if ((isRunning || [4, 5, 7].includes(currentStatus)) && !programProfileLocked && programProfile) {
+  const shouldLockFromBackend = isRunning || [3, 4].includes(currentProfileState);
+  if (shouldLockFromBackend && !programProfileLocked && programProfile) {
     const hasBackendStartTime = state.prog_start && state.prog_start !== '-';
     if (hasBackendStartTime) {
       const backendStartTime = new Date(state.prog_start!).getTime() / 1000;
@@ -199,6 +205,7 @@ export function handleProgramProfileUpdate() {
     }
   }
 
-  lastProgramStatus = currentStatus;
+  lastProfileState = currentProfileState;
+  lastMode = currentMode;
 }
 

@@ -30,10 +30,9 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(trompeloeil)
 
-project(test_app)
+#project(test_app)
 
-add_subdirectory(../lib/HeatTreatFurnace HeatTreatFurnace)
-#add_subdirectory(lib/doctest-2.4.12 doctest)
+# HeatTreatFurnace is added by parent CMakeLists.txt
 
 add_executable(test_app
         main/test.cpp
@@ -48,6 +47,8 @@ add_executable(test_app
         main/FSM/test_Queue.cpp
         main/Pid/test_PidController.cpp
         main/Heater/test_HeaterController.cpp
+        main/Communication/test_MessageCodec.cpp
+        main/Communication/test_FurnaceMessageHandler.cpp
 )
 
 target_link_libraries(test_app
@@ -58,6 +59,7 @@ target_link_libraries(test_app
 
 target_include_directories(test_app PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/main/Communication
 )
 
 set_target_properties(test_app PROPERTIES
